@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>极简记账 - AI智能助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#10b981', // Emerald 500
+              primaryDark: '#047857', // Emerald 700
+              secondary: '#3b82f6', // Blue 500
+              expense: '#ef4444', // Red 500
+              income: '#10b981', // Emerald 500
+              surface: '#ffffff',
+              background: '#f8fafc', // Slate 50
+            },
+            fontFamily: {
+              sans: ['PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '-apple-system', 'sans-serif'],
+            },
+            padding: {
+              'safe': 'env(safe-area-inset-top)',
+              'safe-bottom': 'env(safe-area-inset-bottom)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: none;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* Hide scrollbar for clean mobile look */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      
+      /* Smooth input focus transition */
+      input, button {
+        transition: all 0.2s ease;
+      }
+      
+      /* Glass effect utility */
+      .glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-[#f2f4f6] text-slate-800 h-screen w-screen overflow-hidden select-none font-sans">
+    <div id="root" class="h-full w-full"></div>
+  </body>
+</html>

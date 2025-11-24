@@ -1,0 +1,7 @@
+{
+  "name": "Copy of 极简记账",
+  "description": "一款基于 Gemini AI 的高端智能记账应用，支持语音记账、小票识别与深度财务分析。",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
