@@ -80,7 +80,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
   }
 
   return (
-    <div className="w-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl rounded-3xl p-5 shadow-sm border border-white/40 dark:border-white/5">
+    <div className="w-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl rounded-[32px] p-5 shadow-sm border border-white/40 dark:border-white/5">
       <div className="flex items-center justify-between mb-3">
          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <i className={`fa-solid ${chartType === 'pie' ? 'fa-chart-pie' : 'fa-chart-simple'} text-primary text-xs transition-all`}></i>
@@ -132,7 +132,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
                     </Pie>
                     <Tooltip 
                         formatter={(value: number) => `¥${value.toFixed(2)}`} 
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '8px 12px', backgroundColor: 'rgba(255,255,255,0.95)', fontSize: '12px' }}
+                        contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '8px 12px', backgroundColor: 'rgba(255,255,255,0.95)', fontSize: '12px' }}
                         itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
                     />
                     <Legend 
@@ -162,7 +162,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
                     <Tooltip 
                         cursor={{ fill: 'rgba(0,0,0,0.02)', radius: 8 }}
                         formatter={(value: number) => `¥${value.toFixed(2)}`} 
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '8px 12px', backgroundColor: 'rgba(255,255,255,0.95)', fontSize: '12px' }}
+                        contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '8px 12px', backgroundColor: 'rgba(255,255,255,0.95)', fontSize: '12px' }}
                         itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
                     />
                     <Bar 

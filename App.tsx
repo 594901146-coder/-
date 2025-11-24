@@ -18,7 +18,7 @@ const AmbientBackground = () => (
 );
 
 const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewState) => void }) => (
-  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[28px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-slide-up">
+  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[32px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-slide-up">
     <button 
         onClick={() => onChange('HOME')} 
         className={`flex flex-col items-center justify-center gap-1 w-14 h-full relative transition-all duration-300 group`}
@@ -126,7 +126,6 @@ export default function App() {
     await transition.ready;
 
     // Animate the circle
-    // Optimization: Reduce duration and use standard easing for better mobile performance
     document.documentElement.animate(
       {
         clipPath: [
@@ -135,7 +134,7 @@ export default function App() {
         ],
       },
       {
-        duration: 300,
+        duration: 500, // Slower duration
         easing: 'ease-out', 
         // Specify which pseudo-element to animate
         pseudoElement: '::view-transition-new(root)',
@@ -269,7 +268,7 @@ export default function App() {
                  </div>
 
                  <div className="flex gap-3">
-                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
+                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
                         <div className="flex items-center gap-2 mb-1 opacity-80">
                             <div className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center">
                                 <i className="fa-solid fa-arrow-down text-emerald-600 dark:text-emerald-400 text-[10px]"></i>
@@ -278,7 +277,7 @@ export default function App() {
                         </div>
                         <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400 tracking-tight">¥{income.toFixed(2)}</p>
                     </div>
-                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
+                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
                          <div className="flex items-center gap-2 mb-1 opacity-80">
                             <div className="w-4 h-4 rounded-full bg-rose-400/20 flex items-center justify-center">
                                 <i className="fa-solid fa-arrow-up text-rose-500 dark:text-rose-400 text-[10px]"></i>
@@ -315,7 +314,7 @@ export default function App() {
             </div>
 
             {filteredList.length === 0 ? (
-                <div className="glass-panel rounded-[24px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden border border-white/20 dark:border-white/5">
+                <div className="glass-panel rounded-[32px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden border border-white/20 dark:border-white/5">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
                     
                     <div className="relative">
@@ -353,7 +352,7 @@ export default function App() {
         ></div>
         
         {/* Content */}
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
                 <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
@@ -364,12 +363,12 @@ export default function App() {
             <div className="space-y-6">
                 <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">交易类型</label>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl">
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
                         {(['ALL', 'EXPENSE', 'INCOME'] as const).map(t => (
                             <button
                                 key={t}
                                 onClick={() => setFilterType(t)}
-                                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition-all duration-200 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                             >
                                 {t === 'ALL' ? '全部' : t === 'EXPENSE' ? '支出' : '收入'}
                             </button>
@@ -379,12 +378,12 @@ export default function App() {
                 
                 <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">时间范围</label>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl">
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
                         {(['ALL', 'THIS_MONTH', 'LAST_MONTH'] as const).map(d => (
                             <button
                                 key={d}
                                 onClick={() => setFilterDate(d)}
-                                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition-all duration-200 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                             >
                                 {d === 'ALL' ? '全部' : d === 'THIS_MONTH' ? '本月' : '上月'}
                             </button>
@@ -392,7 +391,7 @@ export default function App() {
                     </div>
                 </div>
                 
-                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all">
+                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-[24px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all">
                     确认
                 </button>
             </div>
@@ -451,7 +450,7 @@ export default function App() {
     const KeypadButton = ({ val, onClick, className = '' }: { val: string | React.ReactNode, onClick: () => void, className?: string }) => (
         <button 
             onClick={onClick} 
-            className={`h-16 rounded-2xl text-2xl font-bold backdrop-blur-md active:scale-95 transition-all duration-150 flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-white/10 dark:border-white/5 ${className}`}
+            className={`h-16 rounded-[20px] text-2xl font-bold backdrop-blur-md active:scale-95 transition-all duration-150 flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-white/10 dark:border-white/5 ${className}`}
         >
             {val}
         </button>
@@ -508,7 +507,7 @@ export default function App() {
                     >
                         <button
                             onClick={() => setCategory(cat)}
-                            className={`w-full h-full flex flex-col items-center justify-center rounded-2xl transition-all duration-300 border border-white/10 backdrop-blur-md ${
+                            className={`w-full h-full flex flex-col items-center justify-center rounded-[24px] transition-all duration-300 border border-white/10 backdrop-blur-md ${
                                 category === cat 
                                 ? 'bg-slate-800/90 dark:bg-emerald-500/90 text-white shadow-lg scale-110 ring-2 ring-white/20 dark:ring-emerald-400/30' 
                                 : 'bg-white/20 dark:bg-slate-800/20 text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-700/40 hover:scale-105 active:scale-95'
@@ -530,7 +529,7 @@ export default function App() {
             </div>
 
             {/* Note Input */}
-            <div className="glass-panel p-4 rounded-2xl flex items-center gap-3 transition-colors duration-300 bg-white/20 dark:bg-slate-800/30">
+            <div className="glass-panel p-4 rounded-[24px] flex items-center gap-3 transition-colors duration-300 bg-white/20 dark:bg-slate-800/30">
                 <i className="fa-regular fa-comment-dots text-slate-400"></i>
                 <input 
                     type="text" 
@@ -559,7 +558,7 @@ export default function App() {
                 <KeypadButton val="6" onClick={() => handleKeypad('6')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
                 <button 
                     onClick={handleSave} 
-                    className="row-span-3 rounded-2xl bg-slate-900/90 dark:bg-emerald-500/90 text-white text-xl font-bold shadow-lg shadow-slate-900/20 dark:shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 hover:brightness-110 backdrop-blur-sm"
+                    className="row-span-3 rounded-[20px] bg-slate-900/90 dark:bg-emerald-500/90 text-white text-xl font-bold shadow-lg shadow-slate-900/20 dark:shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 hover:brightness-110 backdrop-blur-sm"
                 >
                     <i className="fa-solid fa-check text-2xl"></i>
                 </button>
@@ -596,7 +595,7 @@ export default function App() {
             {/* Monthly Summary */}
             <div className="animate-slide-up" style={{ animationDelay: '200ms', opacity: 0, animationFillMode: 'forwards' }}>
                 <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 px-2 text-xs uppercase tracking-wide opacity-70">本月概览</h3>
-                <div className="glass-panel rounded-[24px] p-2 shadow-sm bg-white/30 dark:bg-slate-800/30">
+                <div className="glass-panel rounded-[32px] p-2 shadow-sm bg-white/30 dark:bg-slate-800/30">
                     <div className="flex items-center p-4 border-b border-slate-100/10 dark:border-white/5 last:border-0">
                         <div className="w-10 h-10 rounded-full bg-emerald-100/50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mr-4 backdrop-blur-sm">
                             <i className="fa-solid fa-arrow-down"></i>
