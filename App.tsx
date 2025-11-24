@@ -1,34 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Transaction, TransactionType, ViewState, Category, AiParsedResult } from './types';
+import React, { useState, useEffect } from 'react';
+import { Transaction, TransactionType, ViewState, Category } from './types';
 import TransactionItem from './components/TransactionItem';
 import AnalysisChart from './components/AnalysisChart';
-import { parseTextTransaction, parseReceiptImage, getFinancialAdvice } from './services/geminiService';
 
 // -- Helper Components --
 
 const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewState) => void }) => (
-  <div className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-xl border-t border-slate-100 pb-[env(safe-area-inset-bottom)] px-8 flex justify-between items-start z-50 h-[88px] shadow-[0_-5px_20px_rgba(0,0,0,0.03)]">
+  <div className="fixed bottom-0 left-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] px-8 flex justify-between items-start z-50 h-[80px] shadow-[0_-5px_20px_rgba(0,0,0,0.03)] transition-colors duration-300">
     <button 
         onClick={() => onChange('HOME')} 
-        className={`flex flex-col items-center gap-1.5 pt-3 transition-all duration-300 w-16 ${current === 'HOME' ? 'text-slate-800 translate-y-0' : 'text-slate-300 hover:text-slate-400'}`}
+        className={`flex flex-col items-center gap-1.5 pt-3 transition-all duration-300 w-16 ${current === 'HOME' ? 'text-slate-800 dark:text-slate-100 translate-y-0' : 'text-slate-400 dark:text-slate-600 hover:text-slate-500'}`}
     >
       <i className={`fa-solid fa-house text-xl ${current === 'HOME' ? 'scale-110' : 'scale-100'} transition-transform`}></i>
       <span className="text-[10px] font-bold tracking-wide">首页</span>
     </button>
     
     {/* Floating Action Button for Add */}
-    <div className="relative -top-6">
+    <div className="relative -top-5">
         <button 
             onClick={() => onChange('ADD')} 
-            className="w-16 h-16 bg-slate-900 rounded-[22px] shadow-xl shadow-slate-900/30 flex items-center justify-center text-white active:scale-90 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+            className="w-14 h-14 bg-slate-900 dark:bg-emerald-500 rounded-2xl shadow-lg shadow-slate-900/30 dark:shadow-emerald-500/30 flex items-center justify-center text-white active:scale-90 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
         >
-            <i className="fa-solid fa-plus text-2xl"></i>
+            <i className="fa-solid fa-plus text-xl"></i>
         </button>
     </div>
 
     <button 
         onClick={() => onChange('STATS')} 
-        className={`flex flex-col items-center gap-1.5 pt-3 transition-all duration-300 w-16 ${current === 'STATS' ? 'text-slate-800 translate-y-0' : 'text-slate-300 hover:text-slate-400'}`}
+        className={`flex flex-col items-center gap-1.5 pt-3 transition-all duration-300 w-16 ${current === 'STATS' ? 'text-slate-800 dark:text-slate-100 translate-y-0' : 'text-slate-400 dark:text-slate-600 hover:text-slate-500'}`}
     >
       <i className={`fa-solid fa-chart-pie text-xl ${current === 'STATS' ? 'scale-110' : 'scale-100'} transition-transform`}></i>
       <span className="text-[10px] font-bold tracking-wide">统计</span>
@@ -45,8 +44,22 @@ export default function App() {
   const [balance, setBalance] = useState(0);
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
-  const [advice, setAdvice] = useState<string>("");
-  const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
+  
+  // Theme State with Persistence
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('app_theme');
+    return (saved as 'light' | 'dark') || 'light';
+  });
+
+  // Handle Theme
+  useEffect(() => {
+    localStorage.setItem('app_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -71,18 +84,6 @@ export default function App() {
     setBalance(inc - exp);
   }, [transactions]);
 
-  // Fetch advice when entering stats view
-  useEffect(() => {
-    if (view === 'STATS' && transactions.length > 0 && !advice) {
-        setIsLoadingAdvice(true);
-        getFinancialAdvice(transactions).then(res => {
-            setAdvice(res);
-            setIsLoadingAdvice(false);
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
-
   const addTransaction = (t: Transaction) => {
     setTransactions(prev => [t, ...prev]);
     setView('HOME');
@@ -97,13 +98,13 @@ export default function App() {
   // --- Views ---
 
   const HomeView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar bg-[#f2f4f6]">
+    <div className="h-full overflow-y-auto pb-32 no-scrollbar bg-[#f2f4f6] dark:bg-slate-900 transition-colors duration-300">
       {/* Header / Balance Card */}
       <div className="relative pt-[env(safe-area-inset-top)]">
-          <div className="px-6 py-6 pb-20 bg-slate-900 text-white rounded-b-[40px] shadow-2xl shadow-slate-900/10 relative overflow-hidden">
+          <div className="px-6 py-6 pb-20 bg-slate-900 dark:bg-slate-800 text-white rounded-b-[40px] shadow-2xl shadow-slate-900/10 dark:shadow-black/20 relative overflow-hidden transition-colors duration-300">
              {/* Abstract Background */}
-             <div className="absolute top-0 right-0 w-80 h-80 bg-slate-800 rounded-full blur-3xl opacity-50 -mr-20 -mt-20"></div>
-             <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-900/50 rounded-full blur-3xl opacity-30 -ml-10 -mb-10"></div>
+             <div className="absolute top-0 right-0 w-80 h-80 bg-slate-800 dark:bg-slate-700 rounded-full blur-3xl opacity-50 -mr-20 -mt-20"></div>
+             <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-900/50 dark:bg-emerald-900/30 rounded-full blur-3xl opacity-30 -ml-10 -mb-10"></div>
              
              <div className="relative z-10">
                  <div className="flex justify-between items-center mb-8 mt-2">
@@ -111,8 +112,12 @@ export default function App() {
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span className="text-xs font-medium text-slate-200">极简记账</span>
                     </div>
-                    <button className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md active:bg-white/20 transition-colors">
-                        <i className="fa-regular fa-bell text-slate-200"></i>
+                    {/* Theme Toggle Button */}
+                    <button 
+                        onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                        className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md active:bg-white/20 transition-all active:scale-95"
+                    >
+                        <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-200 text-sm`}></i>
                     </button>
                  </div>
 
@@ -146,19 +151,19 @@ export default function App() {
           {/* Transactions List */}
           <div className="px-5 -mt-10 relative z-20">
             <div className="flex justify-between items-end mb-4 px-2">
-                <h2 className="text-xl font-bold text-slate-800">近期明细</h2>
-                <button className="text-xs font-bold text-slate-400 flex items-center gap-1 active:text-slate-600">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
+                <button className="text-xs font-bold text-slate-400 flex items-center gap-1 active:text-slate-600 dark:active:text-slate-300">
                     全部 <i className="fa-solid fa-chevron-right text-[10px]"></i>
                 </button>
             </div>
 
             {transactions.length === 0 ? (
-                <div className="bg-white rounded-3xl p-10 flex flex-col items-center justify-center shadow-sm text-center">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <i className="fa-solid fa-receipt text-2xl text-slate-300"></i>
+                <div className="bg-white dark:bg-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center shadow-sm text-center transition-colors duration-300">
+                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
+                        <i className="fa-solid fa-receipt text-2xl text-slate-300 dark:text-slate-500"></i>
                     </div>
-                    <p className="text-slate-800 font-bold mb-1">空空如也</p>
-                    <p className="text-slate-400 text-sm">快去记一笔，开启理财生活</p>
+                    <p className="text-slate-800 dark:text-slate-200 font-bold mb-1">空空如也</p>
+                    <p className="text-slate-400 dark:text-slate-500 text-sm">快去记一笔，开启理财生活</p>
                 </div>
             ) : (
                 <div className="space-y-1">
@@ -176,25 +181,21 @@ export default function App() {
   );
 
   const AddView = () => {
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState('0');
     const [note, setNote] = useState('');
     const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
     const [category, setCategory] = useState<string>(Category.FOOD);
-    const [isProcessing, setIsProcessing] = useState(false);
-    
-    // AI Input State
-    const [aiInput, setAiInput] = useState('');
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleSave = () => {
-      if (!amount || !note) return;
+      const val = parseFloat(amount);
+      if (val <= 0) return;
       
       const newTransaction: Transaction = {
         id: Date.now().toString(),
-        amount: parseFloat(amount),
+        amount: val,
         type,
         category,
-        note,
+        note: note || category,
         date: new Date().toISOString().split('T')[0],
         timestamp: Date.now()
       };
@@ -202,172 +203,134 @@ export default function App() {
       addTransaction(newTransaction);
     };
 
-    const handleAiParse = async () => {
-        if (!aiInput) return;
-        setIsProcessing(true);
-        const result = await parseTextTransaction(aiInput);
-        if (result) {
-            applyAiResult(result);
-            setAiInput('');
-        }
-        setIsProcessing(false);
-    };
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setIsProcessing(true);
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            const base64 = reader.result as string;
-            const result = await parseReceiptImage(base64);
-            if (result) {
-                applyAiResult(result);
+    const handleKeypad = (key: string) => {
+        if (key === 'del') {
+            setAmount(prev => prev.length > 1 ? prev.slice(0, -1) : '0');
+        } else if (key === '.') {
+            if (!amount.includes('.')) setAmount(prev => prev + '.');
+        } else {
+            // Number inputs
+            if (amount === '0' && key !== '.') {
+                setAmount(key);
+            } else {
+                // Prevent >2 decimal places
+                const parts = amount.split('.');
+                if (parts[1] && parts[1].length >= 2) return;
+                
+                // Prevent too long numbers
+                if (amount.length > 10) return;
+                
+                setAmount(prev => prev + key);
             }
-            setIsProcessing(false);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const applyAiResult = (res: AiParsedResult) => {
-        setAmount(res.amount.toString());
-        setNote(res.note);
-        setType(res.type);
-        setCategory(res.category);
+        }
     };
 
     return (
-      <div className="h-full flex flex-col bg-slate-50">
+      <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
         {/* Header */}
-        <div className="pt-[env(safe-area-inset-top)] px-4 h-24 flex items-center justify-between bg-white/80 backdrop-blur-md z-30 fixed top-0 w-full shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
-            <button onClick={() => setView('HOME')} className="w-10 h-10 flex items-center justify-center text-slate-800 rounded-full active:bg-slate-100 transition-colors">
+        <div className="pt-[env(safe-area-inset-top)] px-4 pb-2 flex items-center justify-between bg-white dark:bg-slate-800 z-30 shadow-sm transition-colors duration-300">
+            <button onClick={() => setView('HOME')} className="w-10 h-10 flex items-center justify-center text-slate-800 dark:text-slate-100 rounded-full active:bg-slate-100 dark:active:bg-slate-700 transition-colors">
                 <i className="fa-solid fa-times text-xl"></i>
             </button>
-            <div className="flex bg-slate-100 p-1 rounded-full">
+            <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-full">
                 <button 
                     onClick={() => setType(TransactionType.EXPENSE)}
-                    className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.EXPENSE ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-400'}`}
                 >
                     支出
                 </button>
                 <button 
                     onClick={() => setType(TransactionType.INCOME)}
-                    className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.INCOME ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'}`}
+                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.INCOME ? 'bg-white dark:bg-slate-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-400'}`}
                 >
                     收入
                 </button>
             </div>
-            <div className="w-10"></div> {/* Spacer for center alignment */}
+            <div className="w-10"></div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pt-28 px-6 pb-24">
-            
-            {/* Amount Input - Big & Bold */}
-            <div className="mb-8 mt-4 text-center">
-                 <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest opacity-60">金额 (CNY)</label>
-                 <div className="flex items-center justify-center gap-1">
-                    <span className="text-3xl font-bold text-slate-900 mt-2">¥</span>
-                    <input 
-                        type="number" 
-                        value={amount} 
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="bg-transparent text-center text-6xl font-bold text-slate-900 outline-none w-full placeholder-slate-200 caret-emerald-500"
-                        autoFocus
-                    />
-                 </div>
-            </div>
+        {/* Display Amount */}
+        <div className="flex-none bg-white dark:bg-slate-800 pb-6 pt-2 transition-colors duration-300 text-center">
+             <div className="text-slate-400 text-xs font-bold mb-1 tracking-widest uppercase">金额</div>
+             <div className="flex items-center justify-center text-5xl font-bold text-slate-800 dark:text-white tracking-tight">
+                 <span className="text-2xl mr-1 mt-2 text-slate-400">¥</span>
+                 {amount}
+             </div>
+        </div>
 
-            {/* AI Assistant - Floating Card */}
-            <div className="bg-white p-1 rounded-[24px] mb-8 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] border border-slate-100">
-                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-[20px] p-4 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full -mr-10 -mt-10 blur-xl"></div>
-                    
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-3">
-                            <i className="fa-solid fa-wand-magic-sparkles text-indigo-500 text-sm"></i>
-                            <span className="text-xs font-bold text-indigo-800 uppercase tracking-wide">AI 智能识别</span>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                             <input 
-                                type="text" 
-                                placeholder="输入如：打车去机场 58元" 
-                                className="flex-1 text-sm py-3 px-4 rounded-xl border-none bg-white/80 focus:ring-2 focus:ring-indigo-200 shadow-sm text-slate-700 placeholder-slate-400"
-                                value={aiInput}
-                                onChange={(e) => setAiInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleAiParse()}
-                             />
-                             <button 
-                                onClick={handleAiParse}
-                                disabled={isProcessing || !aiInput}
-                                className="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 active:scale-90 transition-all disabled:opacity-50 disabled:shadow-none"
-                             >
-                                {isProcessing ? <i className="fa-solid fa-circle-notch fa-spin text-sm"></i> : <i className="fa-solid fa-arrow-up text-sm"></i>}
-                             </button>
-                        </div>
-                        
-                        <div className="mt-3 flex justify-center">
-                             <input type="file" accept="image/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleImageUpload} />
-                             <button onClick={() => fileInputRef.current?.click()} className="text-[10px] font-bold text-indigo-500 flex items-center gap-1.5 py-1.5 px-3 rounded-full bg-white/50 active:bg-white transition-colors">
-                                <i className="fa-solid fa-camera"></i> 拍摄小票
-                             </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+        {/* Scrollable Middle Area: Category & Note */}
+        <div className="flex-1 overflow-y-auto p-6">
             {/* Category Grid */}
-            <div className="mb-8">
-                <label className="block text-xs font-bold text-slate-400 mb-4 px-1">选择分类</label>
-                <div className="grid grid-cols-4 gap-4">
-                    {Object.values(Category).map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => setCategory(cat)}
-                            className={`aspect-square flex flex-col items-center justify-center rounded-[20px] transition-all duration-300 ${category === cat ? 'bg-slate-800 text-white shadow-lg shadow-slate-800/20 scale-105' : 'bg-white text-slate-400 hover:bg-slate-100'}`}
-                        >
-                            <div className="text-xs font-bold">{cat}</div>
-                        </button>
-                    ))}
-                </div>
+            <div className="grid grid-cols-4 gap-4 mb-6">
+                {Object.values(Category).map((cat) => (
+                    <button
+                        key={cat}
+                        onClick={() => setCategory(cat)}
+                        className={`aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-200 ${category === cat ? 'bg-slate-800 dark:bg-emerald-500 text-white shadow-lg scale-105' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-750'}`}
+                    >
+                        <i className={`fa-solid mb-1 text-lg ${
+                            cat === '餐饮' ? 'fa-utensils' :
+                            cat === '交通' ? 'fa-car-side' :
+                            cat === '购物' ? 'fa-bag-shopping' :
+                            cat === '居住' ? 'fa-house' :
+                            cat === '娱乐' ? 'fa-gamepad' :
+                            cat === '医疗' ? 'fa-briefcase-medical' :
+                            cat === '薪资' ? 'fa-wallet' : 'fa-circle-question'
+                        }`}></i>
+                        <span className="text-[10px] font-bold">{cat}</span>
+                    </button>
+                ))}
             </div>
 
-            {/* Note */}
-            <div className="mb-8">
-                <label className="block text-xs font-bold text-slate-400 mb-3 px-1">备注信息</label>
-                <div className="bg-white p-4 rounded-[20px] shadow-sm border border-slate-50 flex items-center gap-3">
-                    <i className="fa-regular fa-pen-to-square text-slate-300"></i>
-                    <input 
-                        type="text" 
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        placeholder="添加备注..."
-                        className="flex-1 bg-transparent outline-none text-slate-700 font-medium placeholder-slate-300"
-                    />
-                </div>
+            {/* Note Input */}
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm flex items-center gap-3 transition-colors duration-300">
+                <i className="fa-regular fa-comment-dots text-slate-300 dark:text-slate-500"></i>
+                <input 
+                    type="text" 
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="添加备注..."
+                    className="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 font-medium placeholder-slate-300 dark:placeholder-slate-600"
+                />
             </div>
+        </div>
 
-            <button 
-                onClick={handleSave}
-                className="w-full bg-emerald-500 text-white font-bold py-4 rounded-[20px] text-lg shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition-all hover:shadow-2xl hover:shadow-emerald-500/40"
-            >
-                确认
-            </button>
+        {/* Custom Numeric Keypad */}
+        <div className="flex-none bg-slate-100 dark:bg-slate-800/50 pb-[env(safe-area-inset-bottom)] p-4 transition-colors duration-300">
+            <div className="grid grid-cols-4 gap-3 h-52">
+                <button onClick={() => handleKeypad('1')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">1</button>
+                <button onClick={() => handleKeypad('2')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">2</button>
+                <button onClick={() => handleKeypad('3')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">3</button>
+                <button onClick={() => handleKeypad('del')} className="rounded-2xl bg-slate-200 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 shadow-sm active:bg-slate-300 dark:active:bg-slate-600 transition-colors flex items-center justify-center"><i className="fa-solid fa-delete-left"></i></button>
+
+                <button onClick={() => handleKeypad('4')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">4</button>
+                <button onClick={() => handleKeypad('5')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">5</button>
+                <button onClick={() => handleKeypad('6')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">6</button>
+                <button onClick={handleSave} className="row-span-3 rounded-2xl bg-emerald-500 text-white text-xl font-bold shadow-lg shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+                    <i className="fa-solid fa-check text-2xl"></i>
+                    <span className="text-xs opacity-80">完成</span>
+                </button>
+
+                <button onClick={() => handleKeypad('7')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">7</button>
+                <button onClick={() => handleKeypad('8')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">8</button>
+                <button onClick={() => handleKeypad('9')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">9</button>
+                
+                <button onClick={() => handleKeypad('.')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">.</button>
+                <button onClick={() => handleKeypad('0')} className="col-span-2 rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">0</button>
+            </div>
         </div>
       </div>
     );
   };
 
   const StatsView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar bg-[#f2f4f6]">
+    <div className="h-full overflow-y-auto pb-32 no-scrollbar bg-[#f2f4f6] dark:bg-slate-900 transition-colors duration-300">
         {/* Header */}
-        <div className="pt-[env(safe-area-inset-top)] px-6 pb-6 bg-white shadow-sm z-10 sticky top-0">
+        <div className="pt-[env(safe-area-inset-top)] px-6 pb-6 bg-white dark:bg-slate-800 shadow-sm z-10 sticky top-0 transition-colors duration-300">
              <div className="flex justify-between items-center h-16">
-                 <h2 className="text-2xl font-bold text-slate-800 tracking-tight">财务分析</h2>
-                 <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center">
-                    <i className="fa-solid fa-calendar text-slate-400"></i>
+                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">财务分析</h2>
+                 <div className="w-10 h-10 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                    <i className="fa-solid fa-calendar text-slate-400 dark:text-slate-300"></i>
                  </div>
              </div>
         </div>
@@ -375,55 +338,26 @@ export default function App() {
         <div className="p-6 space-y-6">
             <AnalysisChart transactions={transactions} />
 
-            {/* AI Advisor Card */}
-            <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-300 to-purple-300 rounded-[26px] opacity-50 blur opacity-40 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative bg-white rounded-[24px] p-6 shadow-sm border border-slate-50">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-purple-200">
-                            <i className="fa-solid fa-robot"></i>
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-slate-800 text-sm">AI 理财顾问</h3>
-                            <p className="text-[10px] text-slate-400">基于 Gemini 2.5 Flash 模型分析</p>
-                        </div>
-                    </div>
-                    
-                    <div className="bg-slate-50 rounded-2xl p-4 min-h-[100px]">
-                         {isLoadingAdvice ? (
-                            <div className="flex flex-col items-center justify-center py-4 space-y-3">
-                                <i className="fa-solid fa-circle-notch fa-spin text-indigo-400 text-xl"></i>
-                                <span className="text-xs text-slate-400 animate-pulse">正在深度分析您的消费习惯...</span>
-                            </div>
-                        ) : (
-                            <div className="text-sm text-slate-600 leading-7 whitespace-pre-line">
-                                {advice || "请多记几笔账单，AI 将为您生成专属理财建议。"}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
             {/* Monthly Summary */}
             <div>
-                <h3 className="font-bold text-slate-800 mb-4 px-2 text-sm uppercase tracking-wide opacity-80">本月概览</h3>
-                <div className="bg-white rounded-[24px] p-1 shadow-sm border border-slate-50">
-                    <div className="flex items-center p-4 border-b border-slate-50 last:border-0">
-                        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 mr-4">
+                <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 px-2 text-sm uppercase tracking-wide opacity-80">本月概览</h3>
+                <div className="bg-white dark:bg-slate-800 rounded-[24px] p-1 shadow-sm border border-slate-50 dark:border-slate-700 transition-colors duration-300">
+                    <div className="flex items-center p-4 border-b border-slate-50 dark:border-slate-700 last:border-0">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mr-4">
                             <i className="fa-solid fa-arrow-down"></i>
                         </div>
                         <div className="flex-1">
                             <p className="text-xs text-slate-400 font-medium">总收入</p>
-                            <p className="font-bold text-slate-800">¥{income.toFixed(2)}</p>
+                            <p className="font-bold text-slate-800 dark:text-slate-100">¥{income.toFixed(2)}</p>
                         </div>
                     </div>
                     <div className="flex items-center p-4">
-                        <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 mr-4">
+                        <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-500 dark:text-red-400 mr-4">
                             <i className="fa-solid fa-arrow-up"></i>
                         </div>
                         <div className="flex-1">
                             <p className="text-xs text-slate-400 font-medium">总支出</p>
-                            <p className="font-bold text-slate-800">¥{expense.toFixed(2)}</p>
+                            <p className="font-bold text-slate-800 dark:text-slate-100">¥{expense.toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
@@ -435,7 +369,7 @@ export default function App() {
   );
 
   return (
-    <div className="h-full w-full relative bg-[#f2f4f6] text-slate-900 font-sans">
+    <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
       {view === 'HOME' && <HomeView />}
       {view === 'ADD' && <AddView />}
       {view === 'STATS' && <StatsView />}

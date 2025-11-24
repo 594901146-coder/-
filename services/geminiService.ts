@@ -75,32 +75,6 @@ export const parseReceiptImage = async (base64Image: string): Promise<AiParsedRe
   }
 };
 
-export const getFinancialAdvice = async (transactions: any[]): Promise<string> => {
-  try {
-    // Summarize transactions to save tokens
-    const summary = JSON.stringify(transactions.slice(0, 50).map(t => ({
-      a: t.amount,
-      c: t.category,
-      t: t.type,
-      d: t.date
-    })));
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `作为一个专业的私人理财顾问，请根据用户的近期账单数据（JSON数组）提供 3 条简短、犀利且温暖的中文理财建议。
-      关注点：消费结构、异常大额支出、储蓄潜力。
-      语气：专业、贴心、鼓励。
-      不要使用 Markdown 格式，直接分段输出纯文本。
-      数据: ${summary}`,
-    });
-
-    return response.text || "暂时无法生成建议。";
-  } catch (error) {
-    console.error("Gemini Advice Error:", error);
-    return "系统繁忙，AI 正在休息，请稍后再试。";
-  }
-}
-
 // Helper to ensure type safety from AI response
 const validateParsedResult = (data: any): AiParsedResult => {
   return {

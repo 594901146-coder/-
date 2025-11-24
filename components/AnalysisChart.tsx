@@ -23,9 +23,9 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-72 text-slate-400">
-        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 shadow-inner">
-             <i className="fa-solid fa-chart-pie text-3xl text-slate-300"></i>
+      <div className="flex flex-col items-center justify-center h-72 text-slate-400 dark:text-slate-500">
+        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-inner">
+             <i className="fa-solid fa-chart-pie text-3xl text-slate-300 dark:text-slate-600"></i>
         </div>
         <p className="text-sm font-medium">暂无支出数据</p>
         <p className="text-xs mt-1 opacity-70">记一笔支出即可查看分析</p>
@@ -34,13 +34,13 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
   }
 
   return (
-    <div className="w-full bg-white rounded-3xl p-6 shadow-sm border border-slate-50/50">
+    <div className="w-full bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-50/50 dark:border-slate-700">
       <div className="flex items-center justify-between mb-6">
-         <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <i className="fa-solid fa-chart-simple text-primary text-sm"></i>
             支出构成
          </h3>
-         <select className="text-xs bg-slate-50 border-none outline-none text-slate-500 font-medium py-1.5 px-3 rounded-full">
+         <select className="text-xs bg-slate-50 dark:bg-slate-700 border-none outline-none text-slate-500 dark:text-slate-300 font-medium py-1.5 px-3 rounded-full">
             <option>本月</option>
          </select>
       </div>
@@ -65,7 +65,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
             </Pie>
             <Tooltip 
                 formatter={(value: number) => `¥${value.toFixed(2)}`} 
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px' }}
+                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px', backgroundColor: '#ffffff' }}
                 itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
             />
             <Legend 
