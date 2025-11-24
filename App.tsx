@@ -55,6 +55,7 @@ export default function App() {
   const [balance, setBalance] = useState(0);
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Theme State with Persistence
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -71,6 +72,25 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // Handle Fullscreen events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((e) => {
+          console.log(e);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   // Load from local storage on mount
   useEffect(() => {
@@ -129,13 +149,25 @@ export default function App() {
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-200">极简记账</span>
                     </div>
-                    {/* Theme Toggle Button */}
-                    <button 
-                        onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-                        className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
-                    >
-                        <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
-                    </button>
+                    
+                    <div className="flex gap-3">
+                        {/* Fullscreen Toggle Button */}
+                        <button 
+                            onClick={toggleFullScreen}
+                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
+                            title={isFullscreen ? "退出全屏" : "全屏显示"}
+                        >
+                            <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-slate-600 dark:text-slate-300 text-xs`}></i>
+                        </button>
+
+                        {/* Theme Toggle Button */}
+                        <button 
+                            onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
+                        >
+                            <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
+                        </button>
+                    </div>
                  </div>
 
                  <div className="text-center mb-8">
