@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { Transaction, TransactionType, ViewState, Category } from './types';
 import TransactionItem from './components/TransactionItem';
 import AnalysisChart from './components/AnalysisChart';
@@ -92,6 +93,50 @@ export default function App() {
     }
   };
 
+  const handleThemeToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Standard fallback for browsers that don't support View Transitions
+    if (!(document as any).startViewTransition) {
+      setTheme(prev => prev === 'light' ? 'dark' : 'light');
+      return;
+    }
+
+    // Get click coordinates
+    const x = e.clientX;
+    const y = e.clientY;
+
+    // Calculate distance to the furthest corner
+    const endRadius = Math.hypot(
+      Math.max(x, innerWidth - x),
+      Math.max(y, innerHeight - y)
+    );
+
+    // Start the transition
+    const transition = (document as any).startViewTransition(() => {
+      flushSync(() => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+      });
+    });
+
+    // Wait for the pseudo-elements to be created
+    await transition.ready;
+
+    // Animate the circle
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`,
+        ],
+      },
+      {
+        duration: 500,
+        easing: 'ease-in',
+        // Specify which pseudo-element to animate
+        pseudoElement: '::view-transition-new(root)',
+      }
+    );
+  };
+
   // Load from local storage on mount
   useEffect(() => {
     const stored = localStorage.getItem('ai_ledger_transactions');
@@ -162,7 +207,7 @@ export default function App() {
 
                         {/* Theme Toggle Button */}
                         <button 
-                            onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                            onClick={handleThemeToggle}
                             className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
                         >
                             <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
