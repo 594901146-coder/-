@@ -45,11 +45,11 @@ const TransactionItem: React.FC<Props> = ({ transaction, onClick }) => {
   return (
     <div 
       onClick={onClick}
-      className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 mb-3 active:scale-[0.98] transition-all duration-200 rounded-2xl shadow-sm border border-slate-50 dark:border-slate-700"
+      className="flex items-center justify-between p-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md mb-3 active:scale-[0.98] transition-all duration-200 rounded-2xl shadow-sm border border-white/40 dark:border-white/5 hover:bg-white/60 dark:hover:bg-slate-800/60"
     >
       <div className="flex items-center gap-4">
         <div 
-            className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform duration-300 hover:scale-110 hover:rotate-6"
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform duration-300 hover:scale-110 hover:rotate-6 backdrop-blur-sm"
             style={{ 
                 backgroundColor: `${baseColor}20`, // 12% opacity background
                 color: baseColor 
@@ -66,7 +66,7 @@ const TransactionItem: React.FC<Props> = ({ transaction, onClick }) => {
           </div>
         </div>
       </div>
-      <div className={`font-bold text-lg tracking-tight ${isExpense ? 'text-slate-900 dark:text-slate-100' : 'text-emerald-500 dark:text-emerald-400'}`}>
+      <div className={`font-bold text-lg tracking-tight ${isExpense ? 'text-slate-900 dark:text-slate-100' : 'text-emerald-600 dark:text-emerald-400'}`}>
         {isExpense ? '-' : '+'} <span className="text-sm font-medium mr-0.5">¥</span>{transaction.amount.toFixed(2)}
       </div>
     </div>

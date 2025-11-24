@@ -70,7 +70,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-72 text-slate-400 dark:text-slate-500">
-        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-inner">
+        <div className="w-20 h-20 bg-slate-100/50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4 shadow-inner backdrop-blur-sm">
              <i className="fa-solid fa-chart-pie text-3xl text-slate-300 dark:text-slate-600"></i>
         </div>
         <p className="text-sm font-medium">暂无支出数据</p>
@@ -80,7 +80,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
   }
 
   return (
-    <div className="w-full bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-50/50 dark:border-slate-700">
+    <div className="w-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-white/40 dark:border-white/5">
       <div className="flex items-center justify-between mb-6">
          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <i className={`fa-solid ${chartType === 'pie' ? 'fa-chart-pie' : 'fa-chart-simple'} text-primary text-sm transition-all`}></i>
@@ -88,16 +88,16 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
          </h3>
          
          {/* Toggle Controls */}
-         <div className="flex bg-slate-100 dark:bg-slate-700/50 p-1 rounded-xl">
+         <div className="flex bg-slate-100/50 dark:bg-slate-700/30 p-1 rounded-xl backdrop-blur-sm">
              <button 
                 onClick={() => setChartType('pie')}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all duration-300 ${chartType === 'pie' ? 'bg-white dark:bg-slate-600 text-emerald-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all duration-300 ${chartType === 'pie' ? 'bg-white/80 dark:bg-slate-600/80 text-emerald-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
              >
                  <i className="fa-solid fa-chart-pie"></i>
              </button>
              <button 
                 onClick={() => setChartType('bar')}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all duration-300 ${chartType === 'bar' ? 'bg-white dark:bg-slate-600 text-blue-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all duration-300 ${chartType === 'bar' ? 'bg-white/80 dark:bg-slate-600/80 text-blue-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
              >
                  <i className="fa-solid fa-chart-column"></i>
              </button>
@@ -132,7 +132,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
                     </Pie>
                     <Tooltip 
                         formatter={(value: number) => `¥${value.toFixed(2)}`} 
-                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px', backgroundColor: '#ffffff' }}
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px', backgroundColor: 'rgba(255,255,255,0.95)' }}
                         itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
                     />
                     <Legend 
@@ -162,7 +162,7 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
                     <Tooltip 
                         cursor={{ fill: 'rgba(0,0,0,0.02)', radius: 8 }}
                         formatter={(value: number) => `¥${value.toFixed(2)}`} 
-                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px', backgroundColor: '#ffffff' }}
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px', backgroundColor: 'rgba(255,255,255,0.95)' }}
                         itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
                     />
                     <Bar 
