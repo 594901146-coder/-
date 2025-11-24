@@ -225,20 +225,16 @@ export default function App() {
                 <div className="glass-panel rounded-[24px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden border border-white/20 dark:border-white/5">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
                     
-                    <div className="relative mb-6">
-                        {/* Rotating Icon */}
-                        <div className="w-20 h-20 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-full flex items-center justify-center shadow-lg border border-white/40 dark:border-white/10 relative z-10 backdrop-blur-md">
-                            <i className="fa-solid fa-receipt text-3xl text-emerald-500/80 dark:text-emerald-400/80 animate-[spin_8s_linear_infinite]"></i>
+                    <div className="relative">
+                        {/* Static Icon Container with Glow */}
+                        <div className="w-24 h-24 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-full flex items-center justify-center shadow-lg border border-white/40 dark:border-white/10 relative z-10 backdrop-blur-md">
+                            <i className="fa-solid fa-receipt text-4xl text-emerald-500/80 dark:text-emerald-400/80"></i>
                         </div>
                         
-                        {/* Ambient Glows */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-emerald-400/30 rounded-full blur-xl animate-pulse"></div>
+                        {/* Slower, Stronger Breathing Glow Effect */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/40 dark:bg-emerald-500/20 rounded-full blur-2xl animate-breathing"></div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-emerald-400/40 dark:bg-emerald-400/20 rounded-full blur-md animate-breathing" style={{ animationDelay: '1s' }}></div>
                     </div>
-
-                    <p className="text-slate-800 dark:text-slate-200 font-bold mb-2 text-lg">暂无账单</p>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs font-medium px-4 py-1.5 rounded-full bg-slate-100/30 dark:bg-slate-800/30 border border-white/10">
-                        记一笔，开启智能理财之旅
-                    </p>
                 </div>
             ) : (
                 <div className="space-y-3 pb-24">
