@@ -88,16 +88,16 @@ const AnalysisChart: React.FC<Props> = ({ transactions }) => {
          </h3>
          
          {/* Toggle Controls */}
-         <div className="flex bg-slate-100/50 dark:bg-slate-700/30 p-1 rounded-lg backdrop-blur-sm">
+         <div className="flex bg-slate-100/50 dark:bg-slate-700/30 p-1 rounded-full backdrop-blur-sm">
              <button 
                 onClick={() => setChartType('pie')}
-                className={`w-7 h-7 rounded-md flex items-center justify-center text-[10px] transition-all duration-300 ${chartType === 'pie' ? 'bg-white/80 dark:bg-slate-600/80 text-emerald-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] transition-all duration-300 ${chartType === 'pie' ? 'bg-white/80 dark:bg-slate-600/80 text-emerald-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
              >
                  <i className="fa-solid fa-chart-pie"></i>
              </button>
              <button 
                 onClick={() => setChartType('bar')}
-                className={`w-7 h-7 rounded-md flex items-center justify-center text-[10px] transition-all duration-300 ${chartType === 'bar' ? 'bg-white/80 dark:bg-slate-600/80 text-blue-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] transition-all duration-300 ${chartType === 'bar' ? 'bg-white/80 dark:bg-slate-600/80 text-blue-500 shadow-sm scale-100' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
              >
                  <i className="fa-solid fa-chart-column"></i>
              </button>

@@ -49,7 +49,7 @@ const TransactionItem: React.FC<Props> = ({ transaction, onClick }) => {
     >
       <div className="flex items-center gap-4">
         <div 
-            className="w-12 h-12 rounded-[18px] flex items-center justify-center text-lg shadow-sm transition-transform duration-300 hover:scale-110 hover:rotate-6 backdrop-blur-sm"
+            className="w-12 h-12 rounded-[20px] flex items-center justify-center text-lg shadow-sm transition-transform duration-300 hover:scale-110 hover:rotate-6 backdrop-blur-sm"
             style={{ 
                 backgroundColor: `${baseColor}20`, // 12% opacity background
                 color: baseColor 

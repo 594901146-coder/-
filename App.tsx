@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { Transaction, TransactionType, ViewState, Category } from './types';
 import TransactionItem from './components/TransactionItem';
@@ -47,367 +47,15 @@ const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewS
   </div>
 );
 
-// -- Main App Component --
+// -- Separated View Components to fix Focus/Re-render issues --
 
-export default function App() {
-  // State
-  const [view, setView] = useState<ViewState>('HOME');
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [balance, setBalance] = useState(0);
-  const [income, setIncome] = useState(0);
-  const [expense, setExpense] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  
-  // Filter State
-  const [filterType, setFilterType] = useState<'ALL' | 'EXPENSE' | 'INCOME'>('ALL');
-  const [filterDate, setFilterDate] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH'>('ALL');
-  const [showFilter, setShowFilter] = useState(false);
-  
-  // Theme State with Persistence
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    const saved = localStorage.getItem('app_theme');
-    return (saved as 'light' | 'dark') || 'light';
-  });
-
-  // Handle Theme
-  useEffect(() => {
-    localStorage.setItem('app_theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
-
-  // Handle Fullscreen events
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
-  const toggleFullScreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((e) => {
-          console.log(e);
-      });
-    } else {
-      document.exitFullscreen();
-    }
-  };
-
-  const handleThemeToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Standard fallback for browsers that don't support View Transitions
-    if (!(document as any).startViewTransition) {
-      setTheme(prev => prev === 'light' ? 'dark' : 'light');
-      return;
-    }
-
-    // Get click coordinates
-    const x = e.clientX;
-    const y = e.clientY;
-
-    // Calculate distance to the furthest corner
-    const endRadius = Math.hypot(
-      Math.max(x, innerWidth - x),
-      Math.max(y, innerHeight - y)
-    );
-
-    // Start the transition
-    const transition = (document as any).startViewTransition(() => {
-      flushSync(() => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-      });
-    });
-
-    // Wait for the pseudo-elements to be created
-    await transition.ready;
-
-    // Animate the circle
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`,
-        ],
-      },
-      {
-        duration: 500, // Slower duration
-        easing: 'ease-out', 
-        // Specify which pseudo-element to animate
-        pseudoElement: '::view-transition-new(root)',
-      }
-    );
-  };
-
-  // Load from local storage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem('ai_ledger_transactions');
-    if (stored) {
-      setTransactions(JSON.parse(stored));
-    }
-  }, []);
-
-  // Recalculate totals when transactions change
-  useEffect(() => {
-    localStorage.setItem('ai_ledger_transactions', JSON.stringify(transactions));
-    
-    let inc = 0;
-    let exp = 0;
-    transactions.forEach(t => {
-      if (t.type === TransactionType.INCOME) inc += t.amount;
-      else exp += t.amount;
-    });
-    setIncome(inc);
-    setExpense(exp);
-    setBalance(inc - exp);
-  }, [transactions]);
-
-  const addTransaction = (t: Transaction) => {
-    setTransactions(prev => [t, ...prev]);
-    setView('HOME');
-  };
-
-  const deleteTransaction = (id: string) => {
-    if(confirm("确定要删除这条账单吗？")) {
-        setTransactions(prev => prev.filter(t => t.id !== id));
-    }
-  };
-
-  const clearAllTransactions = () => {
-    if (transactions.length === 0) return;
-    if (confirm("⚠️ 高危操作\n\n确定要清空所有账单数据吗？此操作无法撤销。")) {
-        setTransactions([]);
-    }
-  };
-
-  // Filter Logic
-  const getFilteredTransactions = () => {
-    let filtered = transactions;
-    
-    // Filter by Type
-    if (filterType === 'EXPENSE') {
-        filtered = filtered.filter(t => t.type === TransactionType.EXPENSE);
-    } else if (filterType === 'INCOME') {
-        filtered = filtered.filter(t => t.type === TransactionType.INCOME);
-    }
-
-    // Filter by Date
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    if (filterDate === 'THIS_MONTH') {
-        filtered = filtered.filter(t => {
-           const d = new Date(t.date);
-           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-        });
-    } else if (filterDate === 'LAST_MONTH') {
-        // Calculate last month logic
-        const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const lastMonth = lastMonthDate.getMonth();
-        const lastYear = lastMonthDate.getFullYear();
-        
-        filtered = filtered.filter(t => {
-           const d = new Date(t.date);
-           return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
-        });
-    }
-
-    return filtered;
-  };
-
-  const filteredList = getFilteredTransactions();
-  const isFiltered = filterType !== 'ALL' || filterDate !== 'ALL';
-
-  // --- Views ---
-
-  const HomeView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar transition-colors duration-300 relative z-10">
-      {/* Header / Balance Card */}
-      <div className="relative pt-[env(safe-area-inset-top)] px-5 animate-slide-up">
-          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
-             {/* Gradient Shine effect */}
-             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
-             
-             <div className="relative z-10">
-                 <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2 bg-slate-100/30 dark:bg-slate-800/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">极简记账</span>
-                    </div>
-                    
-                    <div className="flex gap-3">
-                        {/* Fullscreen Toggle Button */}
-                        <button 
-                            onClick={toggleFullScreen}
-                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
-                            title={isFullscreen ? "退出全屏" : "全屏显示"}
-                        >
-                            <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-slate-600 dark:text-slate-300 text-xs`}></i>
-                        </button>
-
-                        {/* Theme Toggle Button */}
-                        <button 
-                            onClick={handleThemeToggle}
-                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
-                        >
-                            <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
-                        </button>
-                    </div>
-                 </div>
-
-                 <div className="text-center mb-8">
-                     <p className="text-slate-600 dark:text-slate-300 text-xs font-bold mb-2 tracking-widest uppercase opacity-80">本月结余</p>
-                     <h1 className="text-[3.5rem] font-bold tracking-tighter leading-none text-slate-800 dark:text-white drop-shadow-sm">
-                        <span className="text-2xl align-top mr-1 font-medium opacity-50">¥</span>
-                        {balance.toFixed(2)}
-                     </h1>
-                 </div>
-
-                 <div className="flex gap-3">
-                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
-                        <div className="flex items-center gap-2 mb-1 opacity-80">
-                            <div className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center">
-                                <i className="fa-solid fa-arrow-down text-emerald-600 dark:text-emerald-400 text-[10px]"></i>
-                            </div>
-                            <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">收入</span>
-                        </div>
-                        <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400 tracking-tight">¥{income.toFixed(2)}</p>
-                    </div>
-                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
-                         <div className="flex items-center gap-2 mb-1 opacity-80">
-                            <div className="w-4 h-4 rounded-full bg-rose-400/20 flex items-center justify-center">
-                                <i className="fa-solid fa-arrow-up text-rose-500 dark:text-rose-400 text-[10px]"></i>
-                            </div>
-                            <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">支出</span>
-                        </div>
-                        <p className="font-bold text-lg text-rose-500 dark:text-rose-400 tracking-tight">¥{expense.toFixed(2)}</p>
-                    </div>
-                 </div>
-             </div>
-          </div>
-
-          {/* Transactions List */}
-          <div className="mt-8 relative z-20">
-            <div className="flex justify-between items-end mb-4 px-2">
-                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
-                <div className="flex gap-2">
-                    {transactions.length > 0 && (
-                        <button 
-                            onClick={clearAllTransactions}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors active:scale-90"
-                            title="清空所有账单"
-                        >
-                            <i className="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    )}
-                    <button 
-                        onClick={() => setShowFilter(true)}
-                        className={`text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm border border-white/10 ${isFiltered ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'text-slate-500 dark:text-slate-400 bg-white/30 dark:bg-slate-800/30 hover:bg-white/40'}`}
-                    >
-                        {isFiltered ? '已筛选' : '全部'} <i className={`fa-solid ${isFiltered ? 'fa-filter' : 'fa-chevron-right'} text-[10px]`}></i>
-                    </button>
-                </div>
-            </div>
-
-            {filteredList.length === 0 ? (
-                <div className="glass-panel rounded-[32px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden border border-white/20 dark:border-white/5">
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
-                    
-                    <div className="relative">
-                        {/* Static Icon Container with Glow */}
-                        <div className="w-24 h-24 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-full flex items-center justify-center shadow-lg border border-white/40 dark:border-white/10 relative z-10 backdrop-blur-md">
-                            <i className="fa-solid fa-receipt text-4xl text-emerald-500/80 dark:text-emerald-400/80"></i>
-                        </div>
-                        
-                        {/* Slower, Stronger Breathing Glow Effect */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/40 dark:bg-emerald-500/20 rounded-full blur-2xl animate-breathing"></div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-emerald-400/40 dark:bg-emerald-400/20 rounded-full blur-md animate-breathing" style={{ animationDelay: '1s' }}></div>
-                    </div>
-                    {isFiltered && (
-                        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 font-medium">没有找到符合条件的记录</p>
-                    )}
-                </div>
-            ) : (
-                <div className="space-y-3 pb-24">
-                    {filteredList.map((t, index) => (
-                        <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
-                            <TransactionItem transaction={t} onClick={() => deleteTransaction(t.id)} />
-                        </div>
-                    ))}
-                </div>
-            )}
-          </div>
-      </div>
-
-      {/* Filter Modal */}
-      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
-        {/* Backdrop */}
-        <div 
-          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
-          onClick={() => setShowFilter(false)}
-        ></div>
-        
-        {/* Content */}
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
-                <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-                    <i className="fa-solid fa-times"></i>
-                </button>
-            </div>
-            
-            <div className="space-y-6">
-                <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">交易类型</label>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
-                        {(['ALL', 'EXPENSE', 'INCOME'] as const).map(t => (
-                            <button
-                                key={t}
-                                onClick={() => setFilterType(t)}
-                                className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition-all duration-200 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                            >
-                                {t === 'ALL' ? '全部' : t === 'EXPENSE' ? '支出' : '收入'}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                
-                <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">时间范围</label>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
-                        {(['ALL', 'THIS_MONTH', 'LAST_MONTH'] as const).map(d => (
-                            <button
-                                key={d}
-                                onClick={() => setFilterDate(d)}
-                                className={`flex-1 py-2.5 rounded-2xl text-sm font-bold transition-all duration-200 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                            >
-                                {d === 'ALL' ? '全部' : d === 'THIS_MONTH' ? '本月' : '上月'}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                
-                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-[24px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all">
-                    确认
-                </button>
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const AddView = () => {
+const AddTransactionView = ({ onSave, onClose }: { onSave: (t: Transaction) => void, onClose: () => void }) => {
     const [amount, setAmount] = useState('0');
     const [note, setNote] = useState('');
     const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
     const [category, setCategory] = useState<string>(Category.FOOD);
-
-    // Animation mount check
     const [isMounted, setIsMounted] = useState(false);
+
     useEffect(() => setIsMounted(true), []);
 
     const handleSave = () => {
@@ -424,7 +72,7 @@ export default function App() {
         timestamp: Date.now()
       };
       
-      addTransaction(newTransaction);
+      onSave(newTransaction);
     };
 
     const handleKeypad = (key: string) => {
@@ -461,7 +109,7 @@ export default function App() {
         
         {/* Header */}
         <div className="pt-[env(safe-area-inset-top)] px-4 pb-2 flex items-center justify-between z-30">
-            <button onClick={() => setView('HOME')} className="w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-300 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-300 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                 <i className="fa-solid fa-times text-xl"></i>
             </button>
             
@@ -573,9 +221,424 @@ export default function App() {
         </div>
       </div>
     );
+};
+
+// -- Main App Component --
+
+export default function App() {
+  // State
+  const [view, setView] = useState<ViewState>('HOME');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [balance, setBalance] = useState(0);
+  const [income, setIncome] = useState(0);
+  const [expense, setExpense] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Filter State
+  const [filterType, setFilterType] = useState<'ALL' | 'EXPENSE' | 'INCOME'>('ALL');
+  const [filterDate, setFilterDate] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH'>('ALL');
+  const [showFilter, setShowFilter] = useState(false);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus search input when opened
+  useEffect(() => {
+    if (isSearchOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    } else if (!searchQuery) {
+        // Clear query if closed and empty (optional)
+    }
+  }, [isSearchOpen]);
+  
+  // Theme State with Persistence
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('app_theme');
+    return (saved as 'light' | 'dark') || 'light';
+  });
+
+  // Handle Theme
+  useEffect(() => {
+    localStorage.setItem('app_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  // Handle Fullscreen events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((e) => {
+          console.log(e);
+      });
+    } else {
+      document.exitFullscreen();
+    }
   };
 
-  const StatsView = () => (
+  const handleThemeToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Standard fallback for browsers that don't support View Transitions
+    if (!(document as any).startViewTransition) {
+      setTheme(prev => prev === 'light' ? 'dark' : 'light');
+      return;
+    }
+
+    // Get click coordinates
+    const x = e.clientX;
+    const y = e.clientY;
+
+    // Calculate distance to the furthest corner
+    const endRadius = Math.hypot(
+      Math.max(x, innerWidth - x),
+      Math.max(y, innerHeight - y)
+    );
+
+    // Start the transition
+    const transition = (document as any).startViewTransition(() => {
+      flushSync(() => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+      });
+    });
+
+    // Wait for the pseudo-elements to be created
+    await transition.ready;
+
+    // Animate the circle
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`,
+        ],
+      },
+      {
+        duration: 700, // Slower duration for smoothness
+        easing: 'cubic-bezier(0.65, 0, 0.35, 1)', // Smooth ease-in-out
+        // Specify which pseudo-element to animate
+        pseudoElement: '::view-transition-new(root)',
+      }
+    );
+  };
+
+  // Load from local storage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('ai_ledger_transactions');
+    if (stored) {
+      setTransactions(JSON.parse(stored));
+    }
+  }, []);
+
+  // Recalculate totals when transactions change
+  useEffect(() => {
+    localStorage.setItem('ai_ledger_transactions', JSON.stringify(transactions));
+    
+    let inc = 0;
+    let exp = 0;
+    transactions.forEach(t => {
+      if (t.type === TransactionType.INCOME) inc += t.amount;
+      else exp += t.amount;
+    });
+    setIncome(inc);
+    setExpense(exp);
+    setBalance(inc - exp);
+  }, [transactions]);
+
+  const addTransaction = (t: Transaction) => {
+    setTransactions(prev => [t, ...prev]);
+    setView('HOME');
+  };
+
+  const deleteTransaction = (id: string) => {
+    if(confirm("确定要删除这条账单吗？")) {
+        setTransactions(prev => prev.filter(t => t.id !== id));
+    }
+  };
+
+  const clearAllTransactions = () => {
+    if (transactions.length === 0) return;
+    if (confirm("⚠️ 高危操作\n\n确定要清空所有账单数据吗？此操作无法撤销。")) {
+        setTransactions([]);
+    }
+  };
+
+  // Filter Logic
+  const getFilteredTransactions = () => {
+    let filtered = transactions;
+    
+    // 1. Search Filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.note.toLowerCase().includes(query) || 
+        t.category.toLowerCase().includes(query)
+      );
+    }
+
+    // 2. Filter by Type
+    if (filterType === 'EXPENSE') {
+        filtered = filtered.filter(t => t.type === TransactionType.EXPENSE);
+    } else if (filterType === 'INCOME') {
+        filtered = filtered.filter(t => t.type === TransactionType.INCOME);
+    }
+
+    // 3. Filter by Date
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    if (filterDate === 'THIS_MONTH') {
+        filtered = filtered.filter(t => {
+           const d = new Date(t.date);
+           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+    } else if (filterDate === 'LAST_MONTH') {
+        // Calculate last month logic
+        const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonth = lastMonthDate.getMonth();
+        const lastYear = lastMonthDate.getFullYear();
+        
+        filtered = filtered.filter(t => {
+           const d = new Date(t.date);
+           return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+        });
+    }
+
+    return filtered;
+  };
+
+  const filteredList = getFilteredTransactions();
+  const isFiltered = filterType !== 'ALL' || filterDate !== 'ALL' || searchQuery.trim() !== '';
+
+  // --- Render Functions (Defined in App scope to access state, but not as nested components) ---
+  
+  const renderHomeView = () => (
+    <div className="h-full overflow-y-auto pb-32 no-scrollbar transition-colors duration-300 relative z-10">
+      {/* Header / Balance Card */}
+      <div className="relative pt-[env(safe-area-inset-top)] px-5 animate-slide-up">
+          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
+             {/* Gradient Shine effect */}
+             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
+             
+             <div className="relative z-10">
+                 <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-2 bg-slate-100/30 dark:bg-slate-800/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">极简记账</span>
+                    </div>
+                    
+                    <div className="flex gap-3">
+                        {/* Fullscreen Toggle Button */}
+                        <button 
+                            onClick={toggleFullScreen}
+                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
+                            title={isFullscreen ? "退出全屏" : "全屏显示"}
+                        >
+                            <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-slate-600 dark:text-slate-300 text-xs`}></i>
+                        </button>
+
+                        {/* Theme Toggle Button */}
+                        <button 
+                            onClick={handleThemeToggle}
+                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
+                        >
+                            <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
+                        </button>
+                    </div>
+                 </div>
+
+                 <div className="text-center mb-8">
+                     <p className="text-slate-600 dark:text-slate-300 text-xs font-bold mb-2 tracking-widest uppercase opacity-80">本月结余</p>
+                     <h1 className="text-[3.5rem] font-bold tracking-tighter leading-none text-slate-800 dark:text-white drop-shadow-sm">
+                        <span className="text-2xl align-top mr-1 font-medium opacity-50">¥</span>
+                        {balance.toFixed(2)}
+                     </h1>
+                 </div>
+
+                 <div className="flex gap-3">
+                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
+                        <div className="flex items-center gap-2 mb-1 opacity-80">
+                            <div className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                                <i className="fa-solid fa-arrow-down text-emerald-600 dark:text-emerald-400 text-[10px]"></i>
+                            </div>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">收入</span>
+                        </div>
+                        <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400 tracking-tight">¥{income.toFixed(2)}</p>
+                    </div>
+                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
+                         <div className="flex items-center gap-2 mb-1 opacity-80">
+                            <div className="w-4 h-4 rounded-full bg-rose-400/20 flex items-center justify-center">
+                                <i className="fa-solid fa-arrow-up text-rose-500 dark:text-rose-400 text-[10px]"></i>
+                            </div>
+                            <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">支出</span>
+                        </div>
+                        <p className="font-bold text-lg text-rose-500 dark:text-rose-400 tracking-tight">¥{expense.toFixed(2)}</p>
+                    </div>
+                 </div>
+             </div>
+          </div>
+
+          {/* Transactions List */}
+          <div className="mt-8 relative z-20">
+            <div className="flex justify-between items-center mb-4 px-2">
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
+                <div className="flex gap-2">
+                    {/* Search Toggle */}
+                    <button 
+                        onClick={() => setIsSearchOpen(!isSearchOpen)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-90 ${isSearchOpen || searchQuery ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'bg-white/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-white/40'}`}
+                        title="搜索"
+                    >
+                        <i className={`fa-solid fa-magnifying-glass text-xs transition-transform ${isSearchOpen ? 'scale-110' : ''}`}></i>
+                    </button>
+
+                    {transactions.length > 0 && (
+                        <button 
+                            onClick={clearAllTransactions}
+                            className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors active:scale-90"
+                            title="清空所有账单"
+                        >
+                            <i className="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    )}
+                    <button 
+                        onClick={() => setShowFilter(true)}
+                        className={`text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm border border-white/10 ${isFiltered && !searchQuery ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'text-slate-500 dark:text-slate-400 bg-white/30 dark:bg-slate-800/30 hover:bg-white/40'}`}
+                    >
+                        {isFiltered && !searchQuery ? '已筛选' : '全部'} <i className={`fa-solid ${isFiltered && !searchQuery ? 'fa-filter' : 'fa-chevron-right'} text-[10px]`}></i>
+                    </button>
+                </div>
+            </div>
+
+            {/* Search Bar - Expandable */}
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out origin-top ${isSearchOpen ? 'max-h-24 opacity-100 mb-4 scale-y-100' : 'max-h-0 opacity-0 mb-0 scale-y-95'}`}>
+                <div className="mx-2 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i className={`fa-solid fa-magnifying-glass text-slate-400 text-xs ${searchQuery ? 'animate-pulse text-blue-500' : ''}`}></i>
+                    </div>
+                    <input 
+                        ref={searchInputRef}
+                        type="text" 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="搜索备注或分类..."
+                        className="w-full pl-10 pr-9 py-3 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[20px] text-sm font-medium text-slate-700 dark:text-slate-200 placeholder-slate-400 outline-none focus:bg-white/60 dark:focus:bg-slate-800/60 focus:ring-2 focus:ring-blue-400/20 transition-all shadow-sm"
+                    />
+                     {searchQuery && (
+                        <button 
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 flex items-center justify-center text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 animate-scale-in"
+                        >
+                            <i className="fa-solid fa-times"></i>
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {filteredList.length === 0 ? (
+                <div className="glass-panel rounded-[32px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden border border-white/20 dark:border-white/5">
+                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
+                    
+                    <div className="relative">
+                        {/* Static Icon Container with Glow */}
+                        <div className="w-24 h-24 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-full flex items-center justify-center shadow-lg border border-white/40 dark:border-white/10 relative z-10 backdrop-blur-md">
+                            <i className="fa-solid fa-receipt text-4xl text-emerald-500/80 dark:text-emerald-400/80"></i>
+                        </div>
+                        
+                        {/* Slower, Stronger Breathing Glow Effect */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/40 dark:bg-emerald-500/20 rounded-full blur-2xl animate-breathing"></div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-emerald-400/40 dark:bg-emerald-400/20 rounded-full blur-md animate-breathing" style={{ animationDelay: '1s' }}></div>
+                    </div>
+                    {isFiltered && (
+                        <div className="mt-6 animate-slide-up">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">没有找到符合条件的记录</p>
+                            <p className="text-xs text-slate-400 mt-1">换个关键词试试？</p>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-3 pb-24">
+                    {filteredList.map((t, index) => (
+                        <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}>
+                            <TransactionItem transaction={t} onClick={() => deleteTransaction(t.id)} />
+                        </div>
+                    ))}
+                </div>
+            )}
+          </div>
+      </div>
+
+      {/* Filter Modal */}
+      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
+        {/* Backdrop */}
+        <div 
+          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
+          onClick={() => setShowFilter(false)}
+        ></div>
+        
+        {/* Content */}
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
+                <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                    <i className="fa-solid fa-times"></i>
+                </button>
+            </div>
+            
+            <div className="space-y-6">
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">交易类型</label>
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
+                        {(['ALL', 'EXPENSE', 'INCOME'] as const).map(t => (
+                            <button
+                                key={t}
+                                onClick={() => setFilterType(t)}
+                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-200 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                            >
+                                {t === 'ALL' ? '全部' : t === 'EXPENSE' ? '支出' : '收入'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">时间范围</label>
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
+                        {(['ALL', 'THIS_MONTH', 'LAST_MONTH'] as const).map(d => (
+                            <button
+                                key={d}
+                                onClick={() => setFilterDate(d)}
+                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-200 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                            >
+                                {d === 'ALL' ? '全部' : d === 'THIS_MONTH' ? '本月' : '上月'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                
+                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-[24px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all">
+                    确认
+                </button>
+            </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStatsView = () => (
     <div className="h-full overflow-y-auto pb-32 no-scrollbar relative z-10">
         {/* Header */}
         <div className="pt-[env(safe-area-inset-top)] px-6 pb-4 animate-slide-up">
@@ -626,9 +689,9 @@ export default function App() {
     <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden">
       <AmbientBackground />
       
-      {view === 'HOME' && <HomeView />}
-      {view === 'ADD' && <AddView />}
-      {view === 'STATS' && <StatsView />}
+      {view === 'HOME' && renderHomeView()}
+      {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} />}
+      {view === 'STATS' && renderStatsView()}
       
       {view !== 'ADD' && !showFilter && <NavBar current={view} onChange={setView} />}
     </div>
