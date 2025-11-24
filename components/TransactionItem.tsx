@@ -6,6 +6,18 @@ interface Props {
   onClick?: () => void;
 }
 
+// Consistent color mapping for categories (Matches AnalysisChart)
+const CATEGORY_COLORS: Record<string, string> = {
+  '餐饮': '#f59e0b', // Amber 500
+  '交通': '#3b82f6', // Blue 500
+  '购物': '#ec4899', // Pink 500
+  '居住': '#14b8a6', // Teal 500
+  '娱乐': '#8b5cf6', // Violet 500
+  '医疗': '#ef4444', // Red 500
+  '薪资': '#10b981', // Emerald 500
+  '其他': '#94a3b8', // Slate 400
+};
+
 const TransactionItem: React.FC<Props> = ({ transaction, onClick }) => {
   const isExpense = transaction.type === TransactionType.EXPENSE;
 
@@ -23,17 +35,12 @@ const TransactionItem: React.FC<Props> = ({ transaction, onClick }) => {
     }
   };
 
-  // Color mapping for icons
-  const getIconColor = (category: string) => {
-    if (!isExpense) return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'; // Income
-    switch (category) {
-        case '餐饮': return 'bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400';
-        case '购物': return 'bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400';
-        case '交通': return 'bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-400';
-        case '娱乐': return 'bg-purple-100 text-purple-500 dark:bg-purple-900/30 dark:text-purple-400';
-        default: return 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400';
-    }
-  }
+  // Determine color based on type and category
+  // For Income, we default to Emerald green.
+  // For Expense, we use the category color map.
+  const baseColor = !isExpense 
+    ? '#10b981' 
+    : (CATEGORY_COLORS[transaction.category as string] || '#94a3b8');
 
   return (
     <div 
@@ -41,7 +48,13 @@ const TransactionItem: React.FC<Props> = ({ transaction, onClick }) => {
       className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 mb-3 active:scale-[0.98] transition-all duration-200 rounded-2xl shadow-sm border border-slate-50 dark:border-slate-700"
     >
       <div className="flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm ${getIconColor(transaction.category as string)} transition-transform duration-300 hover:scale-110 hover:rotate-6`}>
+        <div 
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform duration-300 hover:scale-110 hover:rotate-6"
+            style={{ 
+                backgroundColor: `${baseColor}20`, // 12% opacity background
+                color: baseColor 
+            }}
+        >
           <i className={`fa-solid ${getIcon(transaction.category as string)}`}></i>
         </div>
         <div>

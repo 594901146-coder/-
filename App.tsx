@@ -5,32 +5,43 @@ import AnalysisChart from './components/AnalysisChart';
 
 // -- Helper Components --
 
+const AmbientBackground = () => (
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Top Right Blob */}
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-300/30 dark:bg-purple-900/20 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob"></div>
+        {/* Bottom Left Blob */}
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-300/30 dark:bg-emerald-900/20 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob animation-delay-2000"></div>
+        {/* Center/Moving Blob */}
+        <div className="absolute top-[30%] left-[20%] w-[400px] h-[400px] bg-blue-300/30 dark:bg-blue-900/20 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 animate-blob animation-delay-4000"></div>
+    </div>
+);
+
 const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewState) => void }) => (
-  <div className="fixed bottom-0 left-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)] px-8 flex justify-between items-start z-50 h-[80px] shadow-[0_-5px_20px_rgba(0,0,0,0.03)] transition-colors duration-300">
+  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[28px] glass-panel shadow-[0_8px_32px_rgba(0,0,0,0.1)] flex justify-between items-center px-8 z-50 transition-all duration-300 animate-slide-up">
     <button 
         onClick={() => onChange('HOME')} 
-        className={`flex flex-col items-center gap-1.5 pt-3 transition-all duration-300 w-16 ${current === 'HOME' ? 'text-slate-800 dark:text-slate-100 translate-y-0' : 'text-slate-400 dark:text-slate-600 hover:text-slate-500'}`}
+        className={`flex flex-col items-center justify-center gap-1 w-14 h-full relative transition-all duration-300 group`}
     >
-      <i className={`fa-solid fa-house text-xl ${current === 'HOME' ? 'scale-110' : 'scale-100'} transition-transform`}></i>
-      <span className="text-[10px] font-bold tracking-wide">首页</span>
+      <div className={`absolute -top-1 w-8 h-1 rounded-b-lg bg-emerald-500 transition-all duration-300 ${current === 'HOME' ? 'opacity-100' : 'opacity-0'}`}></div>
+      <i className={`fa-solid fa-house text-xl ${current === 'HOME' ? 'text-emerald-500 scale-110' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'} transition-all`}></i>
     </button>
     
-    {/* Floating Action Button for Add */}
-    <div className="relative -top-5">
+    {/* Floating Action Button for Add - Popped out style */}
+    <div className="relative -top-8">
         <button 
             onClick={() => onChange('ADD')} 
-            className="w-14 h-14 bg-slate-900 dark:bg-emerald-500 rounded-2xl shadow-lg shadow-slate-900/30 dark:shadow-emerald-500/30 flex items-center justify-center text-white active:scale-90 transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-800 to-slate-900 dark:from-emerald-500 dark:to-emerald-600 shadow-[0_10px_20px_rgba(0,0,0,0.2)] dark:shadow-[0_10px_20px_rgba(16,185,129,0.3)] flex items-center justify-center text-white text-2xl active:scale-90 transition-all duration-300 hover:-translate-y-1 ring-4 ring-[#f2f4f6]/50 dark:ring-slate-900/50"
         >
-            <i className="fa-solid fa-plus text-xl"></i>
+            <i className="fa-solid fa-plus transition-transform duration-300 group-hover:rotate-90"></i>
         </button>
     </div>
 
     <button 
         onClick={() => onChange('STATS')} 
-        className={`flex flex-col items-center gap-1.5 pt-3 transition-all duration-300 w-16 ${current === 'STATS' ? 'text-slate-800 dark:text-slate-100 translate-y-0' : 'text-slate-400 dark:text-slate-600 hover:text-slate-500'}`}
+        className={`flex flex-col items-center justify-center gap-1 w-14 h-full relative transition-all duration-300 group`}
     >
-      <i className={`fa-solid fa-chart-pie text-xl ${current === 'STATS' ? 'scale-110' : 'scale-100'} transition-transform`}></i>
-      <span className="text-[10px] font-bold tracking-wide">统计</span>
+      <div className={`absolute -top-1 w-8 h-1 rounded-b-lg bg-blue-500 transition-all duration-300 ${current === 'STATS' ? 'opacity-100' : 'opacity-0'}`}></div>
+      <i className={`fa-solid fa-chart-pie text-xl ${current === 'STATS' ? 'text-blue-500 scale-110' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'} transition-all`}></i>
     </button>
   </div>
 );
@@ -90,6 +101,7 @@ export default function App() {
   };
 
   const deleteTransaction = (id: string) => {
+    // Custom confirm could be better, using native for simplicity
     if(confirm("确定要删除这条账单吗？")) {
         setTransactions(prev => prev.filter(t => t.id !== id));
     }
@@ -98,83 +110,96 @@ export default function App() {
   // --- Views ---
 
   const HomeView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar bg-[#f2f4f6] dark:bg-slate-900 transition-colors duration-300">
+    <div className="h-full overflow-y-auto pb-32 no-scrollbar transition-colors duration-300 relative z-10">
       {/* Header / Balance Card */}
-      <div className="relative pt-[env(safe-area-inset-top)]">
-          <div className="px-6 py-6 pb-20 bg-slate-900 dark:bg-slate-800 text-white rounded-b-[40px] shadow-2xl shadow-slate-900/10 dark:shadow-black/20 relative overflow-hidden transition-colors duration-300">
-             {/* Abstract Background */}
-             <div className="absolute top-0 right-0 w-80 h-80 bg-slate-800 dark:bg-slate-700 rounded-full blur-3xl opacity-50 -mr-20 -mt-20"></div>
-             <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-900/50 dark:bg-emerald-900/30 rounded-full blur-3xl opacity-30 -ml-10 -mb-10"></div>
+      <div className="relative pt-[env(safe-area-inset-top)] px-5 animate-slide-up">
+          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
+             {/* Gradient Shine effect */}
+             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
              
              <div className="relative z-10">
-                 <div className="flex justify-between items-center mb-8 mt-2">
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5">
+                 <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span className="text-xs font-medium text-slate-200">极简记账</span>
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">极简记账</span>
                     </div>
                     {/* Theme Toggle Button */}
                     <button 
                         onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-                        className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md active:bg-white/20 transition-all active:scale-95"
+                        className="w-9 h-9 bg-slate-100/50 dark:bg-slate-800/50 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all"
                     >
-                        <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-200 text-sm`}></i>
+                        <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
                     </button>
                  </div>
 
                  <div className="text-center mb-8">
-                     <p className="text-slate-400 text-sm font-medium mb-2 tracking-wide">本月结余</p>
-                     <h1 className="text-[3.5rem] font-bold tracking-tight leading-none">
-                        <span className="text-2xl align-top mr-1 font-medium opacity-60">¥</span>
+                     <p className="text-slate-500 dark:text-slate-400 text-xs font-bold mb-2 tracking-widest uppercase">本月结余</p>
+                     <h1 className="text-[3.5rem] font-bold tracking-tighter leading-none text-slate-800 dark:text-white drop-shadow-sm">
+                        <span className="text-2xl align-top mr-1 font-medium opacity-50">¥</span>
                         {balance.toFixed(2)}
                      </h1>
                  </div>
 
-                 <div className="flex gap-4">
-                    <div className="flex-1 bg-white/5 backdrop-blur-lg rounded-2xl p-4 border border-white/5">
+                 <div className="flex gap-3">
+                    <div className="flex-1 bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors">
                         <div className="flex items-center gap-2 mb-1 opacity-70">
-                            <i className="fa-solid fa-arrow-down text-emerald-400 text-xs"></i>
-                            <span className="text-xs text-slate-300">收入</span>
+                            <div className="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                                <i className="fa-solid fa-arrow-down text-emerald-500 text-[10px]"></i>
+                            </div>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">收入</span>
                         </div>
-                        <p className="font-bold text-lg text-emerald-100">¥{income.toFixed(2)}</p>
+                        <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400 tracking-tight">¥{income.toFixed(2)}</p>
                     </div>
-                    <div className="flex-1 bg-white/5 backdrop-blur-lg rounded-2xl p-4 border border-white/5">
+                    <div className="flex-1 bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm rounded-2xl p-4 border border-white/20 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors">
                          <div className="flex items-center gap-2 mb-1 opacity-70">
-                            <i className="fa-solid fa-arrow-up text-rose-400 text-xs"></i>
-                            <span className="text-xs text-slate-300">支出</span>
+                            <div className="w-4 h-4 rounded-full bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
+                                <i className="fa-solid fa-arrow-up text-rose-500 text-[10px]"></i>
+                            </div>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">支出</span>
                         </div>
-                        <p className="font-bold text-lg text-rose-100">¥{expense.toFixed(2)}</p>
+                        <p className="font-bold text-lg text-rose-500 dark:text-rose-400 tracking-tight">¥{expense.toFixed(2)}</p>
                     </div>
                  </div>
              </div>
           </div>
 
           {/* Transactions List */}
-          <div className="px-5 -mt-10 relative z-20">
+          <div className="mt-8 relative z-20">
             <div className="flex justify-between items-end mb-4 px-2">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
-                <button className="text-xs font-bold text-slate-400 flex items-center gap-1 active:text-slate-600 dark:active:text-slate-300">
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
+                <button className="text-xs font-bold text-slate-400 flex items-center gap-1 px-3 py-1 rounded-full hover:bg-white/30 dark:hover:bg-slate-800/30 transition-colors">
                     全部 <i className="fa-solid fa-chevron-right text-[10px]"></i>
                 </button>
             </div>
 
             {transactions.length === 0 ? (
-                <div className="bg-white dark:bg-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center shadow-sm text-center transition-colors duration-300">
-                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
-                        <i className="fa-solid fa-receipt text-2xl text-slate-300 dark:text-slate-500"></i>
+                <div className="glass-panel rounded-[24px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
+                    
+                    <div className="relative mb-6">
+                        {/* Rotating Icon */}
+                        <div className="w-20 h-20 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-full flex items-center justify-center shadow-lg border border-white/50 dark:border-slate-600 relative z-10">
+                            <i className="fa-solid fa-receipt text-3xl text-emerald-500/60 dark:text-emerald-400/60 animate-[spin_8s_linear_infinite]"></i>
+                        </div>
+                        
+                        {/* Ambient Glows */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-emerald-400/20 rounded-full blur-xl animate-pulse"></div>
                     </div>
-                    <p className="text-slate-800 dark:text-slate-200 font-bold mb-1">空空如也</p>
-                    <p className="text-slate-400 dark:text-slate-500 text-sm">快去记一笔，开启理财生活</p>
+
+                    <p className="text-slate-800 dark:text-slate-200 font-bold mb-2 text-lg">暂无账单</p>
+                    <p className="text-slate-400 dark:text-slate-500 text-xs font-medium px-4 py-1.5 rounded-full bg-slate-100/50 dark:bg-slate-800/30">
+                        记一笔，开启智能理财之旅
+                    </p>
                 </div>
             ) : (
-                <div className="space-y-1">
-                    {transactions.map(t => (
-                        <TransactionItem key={t.id} transaction={t} onClick={() => deleteTransaction(t.id)} />
+                <div className="space-y-2 pb-24">
+                    {transactions.map((t, index) => (
+                        <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                            <TransactionItem transaction={t} onClick={() => deleteTransaction(t.id)} />
+                        </div>
                     ))}
                 </div>
             )}
-            
-            {/* Bottom spacer for safe area */}
-            <div className="h-24"></div>
           </div>
       </div>
     </div>
@@ -185,6 +210,10 @@ export default function App() {
     const [note, setNote] = useState('');
     const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
     const [category, setCategory] = useState<string>(Category.FOOD);
+
+    // Animation mount check
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => setIsMounted(true), []);
 
     const handleSave = () => {
       const val = parseFloat(amount);
@@ -216,32 +245,41 @@ export default function App() {
                 // Prevent >2 decimal places
                 const parts = amount.split('.');
                 if (parts[1] && parts[1].length >= 2) return;
-                
                 // Prevent too long numbers
                 if (amount.length > 10) return;
-                
                 setAmount(prev => prev + key);
             }
         }
     };
 
+    const KeypadButton = ({ val, onClick, className = '' }: { val: string | React.ReactNode, onClick: () => void, className?: string }) => (
+        <button 
+            onClick={onClick} 
+            className={`h-16 rounded-2xl text-2xl font-bold backdrop-blur-md active:scale-95 transition-all duration-150 flex items-center justify-center shadow-sm border border-white/20 ${className}`}
+        >
+            {val}
+        </button>
+    );
+
     return (
-      <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+      <div className={`h-full flex flex-col bg-slate-100/60 dark:bg-slate-900/60 backdrop-blur-2xl transition-all duration-500 z-50 absolute inset-0 ${isMounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+        
         {/* Header */}
-        <div className="pt-[env(safe-area-inset-top)] px-4 pb-2 flex items-center justify-between bg-white dark:bg-slate-800 z-30 shadow-sm transition-colors duration-300">
-            <button onClick={() => setView('HOME')} className="w-10 h-10 flex items-center justify-center text-slate-800 dark:text-slate-100 rounded-full active:bg-slate-100 dark:active:bg-slate-700 transition-colors">
+        <div className="pt-[env(safe-area-inset-top)] px-4 pb-2 flex items-center justify-between z-30">
+            <button onClick={() => setView('HOME')} className="w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-300 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                 <i className="fa-solid fa-times text-xl"></i>
             </button>
-            <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-full">
+            
+            <div className="flex bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md">
                 <button 
                     onClick={() => setType(TransactionType.EXPENSE)}
-                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-400'}`}
+                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.EXPENSE ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                 >
                     支出
                 </button>
                 <button 
                     onClick={() => setType(TransactionType.INCOME)}
-                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.INCOME ? 'bg-white dark:bg-slate-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-400'}`}
+                    className={`px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 ${type === TransactionType.INCOME ? 'bg-white dark:bg-slate-600 text-emerald-600 dark:text-emerald-400 shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                 >
                     收入
                 </button>
@@ -250,73 +288,92 @@ export default function App() {
         </div>
 
         {/* Display Amount */}
-        <div className="flex-none bg-white dark:bg-slate-800 pb-6 pt-2 transition-colors duration-300 text-center">
+        <div className="flex-none pb-6 pt-4 text-center animate-scale-in">
              <div className="text-slate-400 text-xs font-bold mb-1 tracking-widest uppercase">金额</div>
-             <div className="flex items-center justify-center text-5xl font-bold text-slate-800 dark:text-white tracking-tight">
-                 <span className="text-2xl mr-1 mt-2 text-slate-400">¥</span>
+             <div className="flex items-center justify-center text-6xl font-bold text-slate-800 dark:text-white tracking-tighter drop-shadow-sm">
+                 <span className="text-3xl mr-1 mt-3 text-slate-400 font-medium">¥</span>
                  {amount}
              </div>
         </div>
 
         {/* Scrollable Middle Area: Category & Note */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
             {/* Category Grid */}
             <div className="grid grid-cols-4 gap-4 mb-6">
-                {Object.values(Category).map((cat) => (
-                    <button
+                {Object.values(Category).map((cat, idx) => (
+                    <div
                         key={cat}
-                        onClick={() => setCategory(cat)}
-                        className={`aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-200 ${category === cat ? 'bg-slate-800 dark:bg-emerald-500 text-white shadow-lg scale-105' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-750'}`}
+                        className="aspect-square"
+                        style={{ 
+                            animation: `scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 30}ms forwards`, 
+                            opacity: 0, 
+                            transform: 'scale(0.8)' 
+                        }}
                     >
-                        <i className={`fa-solid mb-1 text-lg ${
-                            cat === '餐饮' ? 'fa-utensils' :
-                            cat === '交通' ? 'fa-car-side' :
-                            cat === '购物' ? 'fa-bag-shopping' :
-                            cat === '居住' ? 'fa-house' :
-                            cat === '娱乐' ? 'fa-gamepad' :
-                            cat === '医疗' ? 'fa-briefcase-medical' :
-                            cat === '薪资' ? 'fa-wallet' : 'fa-circle-question'
-                        }`}></i>
-                        <span className="text-[10px] font-bold">{cat}</span>
-                    </button>
+                        <button
+                            onClick={() => setCategory(cat)}
+                            className={`w-full h-full flex flex-col items-center justify-center rounded-2xl transition-all duration-300 border border-white/10 backdrop-blur-md ${
+                                category === cat 
+                                ? 'bg-slate-800 dark:bg-emerald-500 text-white shadow-lg scale-110 ring-2 ring-white/20 dark:ring-emerald-400/30' 
+                                : 'bg-white/40 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-700/60 hover:scale-105 active:scale-95'
+                            }`}
+                        >
+                            <i className={`fa-solid mb-1.5 text-xl ${
+                                cat === '餐饮' ? 'fa-utensils' :
+                                cat === '交通' ? 'fa-car-side' :
+                                cat === '购物' ? 'fa-bag-shopping' :
+                                cat === '居住' ? 'fa-house' :
+                                cat === '娱乐' ? 'fa-gamepad' :
+                                cat === '医疗' ? 'fa-briefcase-medical' :
+                                cat === '薪资' ? 'fa-wallet' : 'fa-circle-question'
+                            }`}></i>
+                            <span className="text-[10px] font-bold">{cat}</span>
+                        </button>
+                    </div>
                 ))}
             </div>
 
             {/* Note Input */}
-            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm flex items-center gap-3 transition-colors duration-300">
-                <i className="fa-regular fa-comment-dots text-slate-300 dark:text-slate-500"></i>
+            <div className="glass-panel p-4 rounded-2xl flex items-center gap-3 transition-colors duration-300">
+                <i className="fa-regular fa-comment-dots text-slate-400"></i>
                 <input 
                     type="text" 
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="添加备注..."
-                    className="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 font-medium placeholder-slate-300 dark:placeholder-slate-600"
+                    className="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 font-medium placeholder-slate-400/70"
                 />
             </div>
         </div>
 
         {/* Custom Numeric Keypad */}
-        <div className="flex-none bg-slate-100 dark:bg-slate-800/50 pb-[env(safe-area-inset-bottom)] p-4 transition-colors duration-300">
-            <div className="grid grid-cols-4 gap-3 h-52">
-                <button onClick={() => handleKeypad('1')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">1</button>
-                <button onClick={() => handleKeypad('2')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">2</button>
-                <button onClick={() => handleKeypad('3')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">3</button>
-                <button onClick={() => handleKeypad('del')} className="rounded-2xl bg-slate-200 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 shadow-sm active:bg-slate-300 dark:active:bg-slate-600 transition-colors flex items-center justify-center"><i className="fa-solid fa-delete-left"></i></button>
+        <div className="flex-none rounded-t-[32px] glass-panel border-b-0 pt-6 px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] animate-slide-up">
+            <div className="grid grid-cols-4 gap-3">
+                <KeypadButton val="1" onClick={() => handleKeypad('1')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton val="2" onClick={() => handleKeypad('2')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton val="3" onClick={() => handleKeypad('3')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton 
+                    val={<i className="fa-solid fa-delete-left"></i>} 
+                    onClick={() => handleKeypad('del')} 
+                    className="bg-slate-200/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400" 
+                />
 
-                <button onClick={() => handleKeypad('4')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">4</button>
-                <button onClick={() => handleKeypad('5')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">5</button>
-                <button onClick={() => handleKeypad('6')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">6</button>
-                <button onClick={handleSave} className="row-span-3 rounded-2xl bg-emerald-500 text-white text-xl font-bold shadow-lg shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+                <KeypadButton val="4" onClick={() => handleKeypad('4')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton val="5" onClick={() => handleKeypad('5')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton val="6" onClick={() => handleKeypad('6')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <button 
+                    onClick={handleSave} 
+                    className="row-span-3 rounded-2xl bg-slate-900 dark:bg-emerald-500 text-white text-xl font-bold shadow-lg shadow-slate-900/20 dark:shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 hover:brightness-110"
+                >
                     <i className="fa-solid fa-check text-2xl"></i>
-                    <span className="text-xs opacity-80">完成</span>
                 </button>
 
-                <button onClick={() => handleKeypad('7')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">7</button>
-                <button onClick={() => handleKeypad('8')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">8</button>
-                <button onClick={() => handleKeypad('9')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">9</button>
+                <KeypadButton val="7" onClick={() => handleKeypad('7')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton val="8" onClick={() => handleKeypad('8')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton val="9" onClick={() => handleKeypad('9')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
                 
-                <button onClick={() => handleKeypad('.')} className="rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">.</button>
-                <button onClick={() => handleKeypad('0')} className="col-span-2 rounded-2xl bg-white dark:bg-slate-700 text-xl font-bold text-slate-700 dark:text-slate-200 shadow-sm active:bg-slate-50 dark:active:bg-slate-600 transition-colors">0</button>
+                <KeypadButton val="." onClick={() => handleKeypad('.')} className="bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
+                <KeypadButton val="0" onClick={() => handleKeypad('0')} className="col-span-2 bg-white/40 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 hover:bg-white/60" />
             </div>
         </div>
       </div>
@@ -324,52 +381,56 @@ export default function App() {
   };
 
   const StatsView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar bg-[#f2f4f6] dark:bg-slate-900 transition-colors duration-300">
+    <div className="h-full overflow-y-auto pb-32 no-scrollbar relative z-10">
         {/* Header */}
-        <div className="pt-[env(safe-area-inset-top)] px-6 pb-6 bg-white dark:bg-slate-800 shadow-sm z-10 sticky top-0 transition-colors duration-300">
+        <div className="pt-[env(safe-area-inset-top)] px-6 pb-4 animate-slide-up">
              <div className="flex justify-between items-center h-16">
                  <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">财务分析</h2>
-                 <div className="w-10 h-10 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                 <div className="w-10 h-10 glass-panel rounded-full flex items-center justify-center shadow-sm">
                     <i className="fa-solid fa-calendar text-slate-400 dark:text-slate-300"></i>
                  </div>
              </div>
         </div>
 
         <div className="p-6 space-y-6">
-            <AnalysisChart transactions={transactions} />
+            <div className="animate-scale-in" style={{ animationDelay: '100ms', opacity: 0, animationFillMode: 'forwards' }}>
+                 <AnalysisChart transactions={transactions} />
+            </div>
 
             {/* Monthly Summary */}
-            <div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 px-2 text-sm uppercase tracking-wide opacity-80">本月概览</h3>
-                <div className="bg-white dark:bg-slate-800 rounded-[24px] p-1 shadow-sm border border-slate-50 dark:border-slate-700 transition-colors duration-300">
-                    <div className="flex items-center p-4 border-b border-slate-50 dark:border-slate-700 last:border-0">
-                        <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mr-4">
+            <div className="animate-slide-up" style={{ animationDelay: '200ms', opacity: 0, animationFillMode: 'forwards' }}>
+                <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 px-2 text-xs uppercase tracking-wide opacity-70">本月概览</h3>
+                <div className="glass-panel rounded-[24px] p-2 shadow-sm">
+                    <div className="flex items-center p-4 border-b border-slate-100 dark:border-white/5 last:border-0">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100/80 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mr-4 backdrop-blur-sm">
                             <i className="fa-solid fa-arrow-down"></i>
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs text-slate-400 font-medium">总收入</p>
-                            <p className="font-bold text-slate-800 dark:text-slate-100">¥{income.toFixed(2)}</p>
+                            <p className="text-xs text-slate-400 font-medium mb-0.5">总收入</p>
+                            <p className="font-bold text-lg text-slate-800 dark:text-slate-100">¥{income.toFixed(2)}</p>
                         </div>
                     </div>
                     <div className="flex items-center p-4">
-                        <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-500 dark:text-red-400 mr-4">
+                        <div className="w-10 h-10 rounded-full bg-red-100/80 dark:bg-red-900/50 flex items-center justify-center text-red-500 dark:text-red-400 mr-4 backdrop-blur-sm">
                             <i className="fa-solid fa-arrow-up"></i>
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs text-slate-400 font-medium">总支出</p>
-                            <p className="font-bold text-slate-800 dark:text-slate-100">¥{expense.toFixed(2)}</p>
+                            <p className="text-xs text-slate-400 font-medium mb-0.5">总支出</p>
+                            <p className="font-bold text-lg text-slate-800 dark:text-slate-100">¥{expense.toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div className="h-10"></div>
+            <div className="h-20"></div>
         </div>
     </div>
   );
 
   return (
-    <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
+    <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden">
+      <AmbientBackground />
+      
       {view === 'HOME' && <HomeView />}
       {view === 'ADD' && <AddView />}
       {view === 'STATS' && <StatsView />}

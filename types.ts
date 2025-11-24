@@ -24,12 +24,4 @@ export interface Transaction {
   timestamp: number;
 }
 
-export interface AiParsedResult {
-  amount: number;
-  category: string;
-  note: string;
-  type: TransactionType;
-  date?: string;
-}
-
 export type ViewState = 'HOME' | 'ADD' | 'STATS' | 'SETTINGS';
