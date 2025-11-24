@@ -58,6 +58,11 @@ export default function App() {
   const [expense, setExpense] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
+  // Filter State
+  const [filterType, setFilterType] = useState<'ALL' | 'EXPENSE' | 'INCOME'>('ALL');
+  const [filterDate, setFilterDate] = useState<'ALL' | 'THIS_MONTH' | 'LAST_MONTH'>('ALL');
+  const [showFilter, setShowFilter] = useState(false);
+  
   // Theme State with Persistence
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('app_theme');
@@ -121,6 +126,7 @@ export default function App() {
     await transition.ready;
 
     // Animate the circle
+    // Optimization: Reduce duration and use a snappier easing for mobile smoothness
     document.documentElement.animate(
       {
         clipPath: [
@@ -129,8 +135,8 @@ export default function App() {
         ],
       },
       {
-        duration: 500,
-        easing: 'ease-in',
+        duration: 400,
+        easing: 'cubic-bezier(0.25, 0.8, 0.25, 1)', // Snappier ease-out-like curve
         // Specify which pseudo-element to animate
         pseudoElement: '::view-transition-new(root)',
       }
@@ -177,6 +183,45 @@ export default function App() {
         setTransactions([]);
     }
   };
+
+  // Filter Logic
+  const getFilteredTransactions = () => {
+    let filtered = transactions;
+    
+    // Filter by Type
+    if (filterType === 'EXPENSE') {
+        filtered = filtered.filter(t => t.type === TransactionType.EXPENSE);
+    } else if (filterType === 'INCOME') {
+        filtered = filtered.filter(t => t.type === TransactionType.INCOME);
+    }
+
+    // Filter by Date
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    if (filterDate === 'THIS_MONTH') {
+        filtered = filtered.filter(t => {
+           const d = new Date(t.date);
+           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+    } else if (filterDate === 'LAST_MONTH') {
+        // Calculate last month logic
+        const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonth = lastMonthDate.getMonth();
+        const lastYear = lastMonthDate.getFullYear();
+        
+        filtered = filtered.filter(t => {
+           const d = new Date(t.date);
+           return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+        });
+    }
+
+    return filtered;
+  };
+
+  const filteredList = getFilteredTransactions();
+  const isFiltered = filterType !== 'ALL' || filterDate !== 'ALL';
 
   // --- Views ---
 
@@ -260,13 +305,16 @@ export default function App() {
                             <i className="fa-solid fa-trash-can text-xs"></i>
                         </button>
                     )}
-                    <button className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/30 dark:bg-slate-800/30 hover:bg-white/40 transition-colors backdrop-blur-sm border border-white/10">
-                        全部 <i className="fa-solid fa-chevron-right text-[10px]"></i>
+                    <button 
+                        onClick={() => setShowFilter(true)}
+                        className={`text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm border border-white/10 ${isFiltered ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'text-slate-500 dark:text-slate-400 bg-white/30 dark:bg-slate-800/30 hover:bg-white/40'}`}
+                    >
+                        {isFiltered ? '已筛选' : '全部'} <i className={`fa-solid ${isFiltered ? 'fa-filter' : 'fa-chevron-right'} text-[10px]`}></i>
                     </button>
                 </div>
             </div>
 
-            {transactions.length === 0 ? (
+            {filteredList.length === 0 ? (
                 <div className="glass-panel rounded-[24px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden border border-white/20 dark:border-white/5">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
                     
@@ -280,10 +328,13 @@ export default function App() {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/40 dark:bg-emerald-500/20 rounded-full blur-2xl animate-breathing"></div>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-emerald-400/40 dark:bg-emerald-400/20 rounded-full blur-md animate-breathing" style={{ animationDelay: '1s' }}></div>
                     </div>
+                    {isFiltered && (
+                        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 font-medium">没有找到符合条件的记录</p>
+                    )}
                 </div>
             ) : (
                 <div className="space-y-3 pb-24">
-                    {transactions.map((t, index) => (
+                    {filteredList.map((t, index) => (
                         <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
                             <TransactionItem transaction={t} onClick={() => deleteTransaction(t.id)} />
                         </div>
@@ -291,6 +342,61 @@ export default function App() {
                 </div>
             )}
           </div>
+      </div>
+
+      {/* Filter Modal */}
+      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
+        {/* Backdrop */}
+        <div 
+          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
+          onClick={() => setShowFilter(false)}
+        ></div>
+        
+        {/* Content */}
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
+                <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                    <i className="fa-solid fa-times"></i>
+                </button>
+            </div>
+            
+            <div className="space-y-6">
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">交易类型</label>
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl">
+                        {(['ALL', 'EXPENSE', 'INCOME'] as const).map(t => (
+                            <button
+                                key={t}
+                                onClick={() => setFilterType(t)}
+                                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                            >
+                                {t === 'ALL' ? '全部' : t === 'EXPENSE' ? '支出' : '收入'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">时间范围</label>
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl">
+                        {(['ALL', 'THIS_MONTH', 'LAST_MONTH'] as const).map(d => (
+                            <button
+                                key={d}
+                                onClick={() => setFilterDate(d)}
+                                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                            >
+                                {d === 'ALL' ? '全部' : d === 'THIS_MONTH' ? '本月' : '上月'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                
+                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all">
+                    确认
+                </button>
+            </div>
+        </div>
       </div>
     </div>
   );
