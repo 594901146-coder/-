@@ -126,7 +126,7 @@ export default function App() {
     await transition.ready;
 
     // Animate the circle
-    // Optimization: Reduce duration and use a snappier easing for mobile smoothness
+    // Optimization: Reduce duration and use standard easing for better mobile performance
     document.documentElement.animate(
       {
         clipPath: [
@@ -135,8 +135,8 @@ export default function App() {
         ],
       },
       {
-        duration: 400,
-        easing: 'cubic-bezier(0.25, 0.8, 0.25, 1)', // Snappier ease-out-like curve
+        duration: 300,
+        easing: 'ease-out', 
         // Specify which pseudo-element to animate
         pseudoElement: '::view-transition-new(root)',
       }
@@ -631,7 +631,7 @@ export default function App() {
       {view === 'ADD' && <AddView />}
       {view === 'STATS' && <StatsView />}
       
-      {view !== 'ADD' && <NavBar current={view} onChange={setView} />}
+      {view !== 'ADD' && !showFilter && <NavBar current={view} onChange={setView} />}
     </div>
   );
 }
