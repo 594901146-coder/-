@@ -19,13 +19,13 @@ const AmbientBackground = () => (
 );
 
 const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewState) => void }) => (
-  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[32px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-slide-up">
+  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[32px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-enter-smooth shadow-lg dark:shadow-slate-900/50">
     <button 
         onClick={() => onChange('HOME')} 
         className={`flex flex-col items-center justify-center gap-1 w-14 h-full relative transition-all duration-300 group`}
     >
       <div className={`absolute -top-1 w-8 h-1 rounded-b-lg bg-emerald-500 transition-all duration-300 ${current === 'HOME' ? 'opacity-100' : 'opacity-0'}`}></div>
-      <i className={`fa-solid fa-house text-xl ${current === 'HOME' ? 'text-emerald-500 scale-110 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'} transition-all`}></i>
+      <i className={`fa-solid fa-house text-xl ${current === 'HOME' ? 'text-emerald-500 scale-110 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'} transition-all duration-300`}></i>
     </button>
     
     {/* Floating Action Button for Add - Popped out style */}
@@ -43,19 +43,20 @@ const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewS
         className={`flex flex-col items-center justify-center gap-1 w-14 h-full relative transition-all duration-300 group`}
     >
       <div className={`absolute -top-1 w-8 h-1 rounded-b-lg bg-blue-500 transition-all duration-300 ${current === 'STATS' ? 'opacity-100' : 'opacity-0'}`}></div>
-      <i className={`fa-solid fa-chart-pie text-xl ${current === 'STATS' ? 'text-blue-500 scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'} transition-all`}></i>
+      <i className={`fa-solid fa-chart-pie text-xl ${current === 'STATS' ? 'text-blue-500 scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'} transition-all duration-300`}></i>
     </button>
   </div>
 );
 
 // -- Separated View Components to fix Focus/Re-render issues --
 
-const AddTransactionView = ({ onSave, onClose }: { onSave: (t: Transaction) => void, onClose: () => void }) => {
+const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Transaction) => void, onClose: () => void, isFullscreen: boolean }) => {
     const [amount, setAmount] = useState('0');
     const [note, setNote] = useState('');
     const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
     const [category, setCategory] = useState<string>(Category.FOOD);
     const [isMounted, setIsMounted] = useState(false);
+    const [isNoteFocused, setIsNoteFocused] = useState(false);
 
     useEffect(() => setIsMounted(true), []);
 
@@ -106,10 +107,13 @@ const AddTransactionView = ({ onSave, onClose }: { onSave: (t: Transaction) => v
     );
 
     return (
-      <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 ${isMounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+      <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 animate-slide-up-modal`}>
         
-        {/* Header - Reduced padding to 20px + safe area */}
-        <div className="pt-[calc(env(safe-area-inset-top)+20px)] px-4 pb-2 flex items-center justify-between z-30">
+        {/* Header - Dynamic Padding */}
+        <div 
+            className="px-4 pb-2 flex items-center justify-between z-30 transition-all duration-300"
+            style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
+        >
             <button onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-300 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                 <i className="fa-solid fa-times text-xl"></i>
             </button>
@@ -132,7 +136,7 @@ const AddTransactionView = ({ onSave, onClose }: { onSave: (t: Transaction) => v
         </div>
 
         {/* Display Amount */}
-        <div className="flex-none pb-6 pt-4 text-center animate-scale-in">
+        <div className="flex-none pb-6 pt-4 text-center animate-scale-spring">
              <div className="text-slate-500 dark:text-slate-400 text-xs font-bold mb-1 tracking-widest uppercase">金额</div>
              <div className="flex items-center justify-center text-6xl font-bold text-slate-800 dark:text-white tracking-tighter drop-shadow-sm">
                  <span className="text-3xl mr-1 mt-3 text-slate-400 font-medium">¥</span>
@@ -149,7 +153,7 @@ const AddTransactionView = ({ onSave, onClose }: { onSave: (t: Transaction) => v
                         key={cat}
                         className="aspect-square"
                         style={{ 
-                            animation: `scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 30}ms forwards`, 
+                            animation: `scaleSpring 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) ${idx * 30}ms forwards`, 
                             opacity: 0, 
                             transform: 'scale(0.8)' 
                         }}
@@ -184,42 +188,56 @@ const AddTransactionView = ({ onSave, onClose }: { onSave: (t: Transaction) => v
                     type="text" 
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
+                    onFocus={() => setIsNoteFocused(true)}
+                    onBlur={() => setIsNoteFocused(false)}
+                    onKeyDown={(e) => { if(e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                     placeholder="添加备注..."
                     className="flex-1 bg-transparent outline-none text-slate-700 dark:text-slate-200 font-medium placeholder-slate-400/70"
                 />
+                {isNoteFocused && (
+                    <button 
+                        onMouseDown={(e) => { e.preventDefault(); handleSave(); }}
+                        className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md animate-scale-spring active:scale-90"
+                    >
+                        <i className="fa-solid fa-check text-sm"></i>
+                    </button>
+                )}
             </div>
+            {isNoteFocused && <div className="h-64"></div>}
         </div>
 
-        {/* Custom Numeric Keypad */}
-        <div className="flex-none rounded-t-[32px] glass-panel border-b-0 pt-6 px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] animate-slide-up bg-white/40 dark:bg-slate-900/60 backdrop-blur-2xl">
-            <div className="grid grid-cols-4 gap-3">
-                <KeypadButton val="1" onClick={() => handleKeypad('1')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton val="2" onClick={() => handleKeypad('2')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton val="3" onClick={() => handleKeypad('3')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton 
-                    val={<i className="fa-solid fa-delete-left"></i>} 
-                    onClick={() => handleKeypad('del')} 
-                    className="bg-slate-200/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50" 
-                />
+        {/* Custom Numeric Keypad - Hidden when typing note */}
+        {!isNoteFocused && (
+            <div className="flex-none rounded-t-[32px] glass-panel border-b-0 pt-6 px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] bg-white/40 dark:bg-slate-900/60 backdrop-blur-2xl animate-slide-up-modal">
+                <div className="grid grid-cols-4 gap-3">
+                    <KeypadButton val="1" onClick={() => handleKeypad('1')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="2" onClick={() => handleKeypad('2')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="3" onClick={() => handleKeypad('3')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton 
+                        val={<i className="fa-solid fa-delete-left"></i>} 
+                        onClick={() => handleKeypad('del')} 
+                        className="bg-slate-200/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50" 
+                    />
 
-                <KeypadButton val="4" onClick={() => handleKeypad('4')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton val="5" onClick={() => handleKeypad('5')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton val="6" onClick={() => handleKeypad('6')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <button 
-                    onClick={handleSave} 
-                    className="row-span-3 rounded-[20px] bg-slate-900/90 dark:bg-emerald-500/90 text-white text-xl font-bold shadow-lg shadow-slate-900/20 dark:shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 hover:brightness-110 backdrop-blur-sm"
-                >
-                    <i className="fa-solid fa-check text-2xl"></i>
-                </button>
+                    <KeypadButton val="4" onClick={() => handleKeypad('4')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="5" onClick={() => handleKeypad('5')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="6" onClick={() => handleKeypad('6')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <button 
+                        onClick={handleSave} 
+                        className="row-span-3 rounded-[20px] bg-slate-900/90 dark:bg-emerald-500/90 text-white text-xl font-bold shadow-lg shadow-slate-900/20 dark:shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 hover:brightness-110 backdrop-blur-sm"
+                    >
+                        <i className="fa-solid fa-check text-2xl"></i>
+                    </button>
 
-                <KeypadButton val="7" onClick={() => handleKeypad('7')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton val="8" onClick={() => handleKeypad('8')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton val="9" onClick={() => handleKeypad('9')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                
-                <KeypadButton val="." onClick={() => handleKeypad('.')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                <KeypadButton val="0" onClick={() => handleKeypad('0')} className="col-span-2 bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="7" onClick={() => handleKeypad('7')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="8" onClick={() => handleKeypad('8')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="9" onClick={() => handleKeypad('9')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    
+                    <KeypadButton val="." onClick={() => handleKeypad('.')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="0" onClick={() => handleKeypad('0')} className="col-span-2 bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                </div>
             </div>
-        </div>
+        )}
       </div>
     );
 };
@@ -244,7 +262,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null); // New ref for scrolling
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Context Menu State
   const [contextMenuTarget, setContextMenuTarget] = useState<Transaction | null>(null);
@@ -291,17 +309,12 @@ export default function App() {
     // Auto fullscreen on first interaction
     const tryAutoFullscreen = () => {
       if (!document.fullscreenElement) {
-        // Use capture to ensure we handle this early
-        document.documentElement.requestFullscreen().catch(() => {
-            // Silently fail if blocked or not supported (iOS Safari)
-        });
+        document.documentElement.requestFullscreen().catch(() => {});
       }
-      // Remove listener after first attempt
       document.removeEventListener('click', tryAutoFullscreen, true);
       document.removeEventListener('touchend', tryAutoFullscreen, true);
     };
 
-    // Use capture: true to catch the event early
     document.addEventListener('click', tryAutoFullscreen, true);
     document.addEventListener('touchend', tryAutoFullscreen, true);
 
@@ -314,72 +327,49 @@ export default function App() {
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((e) => {
-          console.log(e);
-      });
+      document.documentElement.requestFullscreen().catch((e) => console.log(e));
     } else {
       document.exitFullscreen();
     }
   };
 
   const handleThemeToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Standard fallback for browsers that don't support View Transitions
     if (!(document as any).startViewTransition) {
       setTheme(prev => prev === 'light' ? 'dark' : 'light');
       return;
     }
 
-    // Get click coordinates
     const x = e.clientX;
     const y = e.clientY;
+    const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
 
-    // Calculate distance to the furthest corner
-    const endRadius = Math.hypot(
-      Math.max(x, innerWidth - x),
-      Math.max(y, innerHeight - y)
-    );
-
-    // Start the transition
     const transition = (document as any).startViewTransition(() => {
       flushSync(() => {
         setTheme(prev => prev === 'light' ? 'dark' : 'light');
       });
     });
 
-    // Wait for the pseudo-elements to be created
     await transition.ready;
 
-    // Animate the circle
     document.documentElement.animate(
+      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
       {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`,
-        ],
-      },
-      {
-        duration: 700, // Slower duration for smoothness
-        easing: 'cubic-bezier(0.65, 0, 0.35, 1)', // Smooth ease-in-out
-        // Specify which pseudo-element to animate
+        duration: 700,
+        easing: 'cubic-bezier(0.65, 0, 0.35, 1)',
         pseudoElement: '::view-transition-new(root)',
       }
     );
   };
 
-  // Load from local storage on mount
+  // Load/Save Transactions
   useEffect(() => {
     const stored = localStorage.getItem('ai_ledger_transactions');
-    if (stored) {
-      setTransactions(JSON.parse(stored));
-    }
+    if (stored) setTransactions(JSON.parse(stored));
   }, []);
 
-  // Recalculate totals when transactions change
   useEffect(() => {
     localStorage.setItem('ai_ledger_transactions', JSON.stringify(transactions));
-    
-    let inc = 0;
-    let exp = 0;
+    let inc = 0, exp = 0;
     transactions.forEach(t => {
       if (t.type === TransactionType.INCOME) inc += t.amount;
       else exp += t.amount;
@@ -395,11 +385,8 @@ export default function App() {
   };
 
   const confirmDelete = () => {
-    if (deleteMode === 'ALL') {
-        setTransactions([]);
-    } else if (pendingDeleteId) {
-        setTransactions(prev => prev.filter(t => t.id !== pendingDeleteId));
-    }
+    if (deleteMode === 'ALL') setTransactions([]);
+    else if (pendingDeleteId) setTransactions(prev => prev.filter(t => t.id !== pendingDeleteId));
     setShowDeleteConfirm(false);
     setPendingDeleteId(null);
     setContextMenuTarget(null);
@@ -408,8 +395,8 @@ export default function App() {
   const promptDeleteTransaction = (id: string) => {
     setPendingDeleteId(id);
     setDeleteMode('SINGLE');
-    setContextMenuTarget(null); // Hide context menu
-    setShowDeleteConfirm(true); // Show confirmation modal
+    setContextMenuTarget(null);
+    setShowDeleteConfirm(true);
   };
 
   const promptClearAll = () => {
@@ -420,90 +407,58 @@ export default function App() {
 
   const handleUpdateNote = () => {
     if (contextMenuTarget && editNoteText.trim()) {
-        setTransactions(prev => prev.map(t => 
-            t.id === contextMenuTarget.id ? { ...t, note: editNoteText } : t
-        ));
+        setTransactions(prev => prev.map(t => t.id === contextMenuTarget.id ? { ...t, note: editNoteText } : t));
         setIsEditingNote(false);
         setContextMenuTarget(null);
     }
   };
 
-  const openContextMenu = (t: Transaction) => {
-    setContextMenuTarget(t);
-  };
+  const openContextMenu = (t: Transaction) => setContextMenuTarget(t);
   
-  // Handler for search input focus
   const handleSearchFocus = () => {
-      // Delay scrolling to allow keyboard to pop up and viewport to resize
       setTimeout(() => {
           if (searchContainerRef.current) {
-              searchContainerRef.current.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'center'
-              });
+              searchContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
       }, 300);
   };
 
-  // Filter Logic
   const getFilteredTransactions = () => {
     let filtered = transactions;
-    
-    // 1. Search Filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(t => 
-        t.note.toLowerCase().includes(query) || 
-        t.category.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter(t => t.note.toLowerCase().includes(query) || t.category.toLowerCase().includes(query));
     }
+    if (filterType === 'EXPENSE') filtered = filtered.filter(t => t.type === TransactionType.EXPENSE);
+    else if (filterType === 'INCOME') filtered = filtered.filter(t => t.type === TransactionType.INCOME);
 
-    // 2. Filter by Type
-    if (filterType === 'EXPENSE') {
-        filtered = filtered.filter(t => t.type === TransactionType.EXPENSE);
-    } else if (filterType === 'INCOME') {
-        filtered = filtered.filter(t => t.type === TransactionType.INCOME);
-    }
-
-    // 3. Filter by Date
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
     if (filterDate === 'THIS_MONTH') {
-        filtered = filtered.filter(t => {
-           const d = new Date(t.date);
-           return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-        });
+        filtered = filtered.filter(t => { const d = new Date(t.date); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; });
     } else if (filterDate === 'LAST_MONTH') {
-        // Calculate last month logic
         const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const lastMonth = lastMonthDate.getMonth();
-        const lastYear = lastMonthDate.getFullYear();
-        
-        filtered = filtered.filter(t => {
-           const d = new Date(t.date);
-           return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
-        });
+        filtered = filtered.filter(t => { const d = new Date(t.date); return d.getMonth() === lastMonthDate.getMonth() && d.getFullYear() === lastMonthDate.getFullYear(); });
     }
-
     return filtered;
   };
 
   const filteredList = getFilteredTransactions();
   const isFiltered = filterType !== 'ALL' || filterDate !== 'ALL' || searchQuery.trim() !== '';
-
-  // Determine if any overlay is active to hide NavBar
   const isOverlayActive = showFilter || isEditingNote || contextMenuTarget !== null || showDeleteConfirm;
 
-  // --- Render Functions (Defined in App scope to access state, but not as nested components) ---
+  // -- Render Functions --
   
   const renderHomeView = () => (
-    <div className={`h-full overflow-y-auto no-scrollbar transition-colors duration-300 relative z-10 ${isSearchOpen ? 'pb-64' : 'pb-32'}`}>
-      {/* Header - Reduced padding to 20px + safe area */}
-      <div className="relative pt-[calc(env(safe-area-inset-top)+20px)] px-5 animate-slide-up">
+    <div className={`h-full overflow-y-auto no-scrollbar relative z-10 animate-enter-smooth ${isSearchOpen ? 'pb-64' : 'pb-32'}`}>
+      {/* Header - Dynamic Padding */}
+      <div 
+        className="relative px-5 transition-all duration-300" 
+        style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
+      >
           <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
-             {/* Gradient Shine effect */}
              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
              
              <div className="relative z-10">
@@ -514,19 +469,16 @@ export default function App() {
                     </div>
                     
                     <div className="flex gap-3">
-                        {/* Fullscreen Toggle Button */}
                         <button 
                             onClick={toggleFullScreen}
-                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
-                            title={isFullscreen ? "退出全屏" : "全屏显示"}
+                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-[20px] flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
                         >
                             <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-slate-600 dark:text-slate-300 text-xs`}></i>
                         </button>
 
-                        {/* Theme Toggle Button */}
                         <button 
                             onClick={handleThemeToggle}
-                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
+                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-[20px] flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
                         >
                             <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
                         </button>
@@ -569,11 +521,9 @@ export default function App() {
             <div className="flex justify-between items-center mb-4 px-2">
                 <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
                 <div className="flex gap-2">
-                    {/* Search Toggle */}
                     <button 
                         onClick={() => setIsSearchOpen(!isSearchOpen)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-90 ${isSearchOpen || searchQuery ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'bg-white/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-white/40'}`}
-                        title="搜索"
+                        className={`w-8 h-8 flex items-center justify-center rounded-[20px] transition-all active:scale-90 ${isSearchOpen || searchQuery ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'bg-white/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-white/40'}`}
                     >
                         <i className={`fa-solid fa-magnifying-glass text-xs transition-transform ${isSearchOpen ? 'scale-110' : ''}`}></i>
                     </button>
@@ -581,8 +531,7 @@ export default function App() {
                     {transactions.length > 0 && (
                         <button 
                             onClick={promptClearAll}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors active:scale-90"
-                            title="清空所有账单"
+                            className="w-8 h-8 flex items-center justify-center rounded-[20px] bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors active:scale-90"
                         >
                             <i className="fa-solid fa-trash-can text-xs"></i>
                         </button>
@@ -596,8 +545,7 @@ export default function App() {
                 </div>
             </div>
 
-            {/* Search Bar - Expandable */}
-            <div ref={searchContainerRef} className={`overflow-hidden transition-all duration-300 ease-in-out origin-top ${isSearchOpen ? 'max-h-24 opacity-100 mb-4 scale-y-100' : 'max-h-0 opacity-0 mb-0 scale-y-95'}`}>
+            <div ref={searchContainerRef} className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-top ${isSearchOpen ? 'max-h-24 opacity-100 mb-4 scale-y-100' : 'max-h-0 opacity-0 mb-0 scale-y-95'}`}>
                 <div className="mx-2 relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <i className={`fa-solid fa-magnifying-glass text-slate-400 text-xs ${searchQuery ? 'animate-pulse text-blue-500' : ''}`}></i>
@@ -614,7 +562,7 @@ export default function App() {
                      {searchQuery && (
                         <button 
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 flex items-center justify-center text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 animate-scale-in"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 flex items-center justify-center text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 animate-scale-spring"
                         >
                             <i className="fa-solid fa-times"></i>
                         </button>
@@ -623,35 +571,27 @@ export default function App() {
             </div>
 
             {filteredList.length === 0 ? (
-                <div className="glass-panel rounded-[32px] p-12 flex flex-col items-center justify-center text-center animate-scale-in relative overflow-hidden border border-white/20 dark:border-white/5">
+                <div className="glass-panel rounded-[32px] p-12 flex flex-col items-center justify-center text-center animate-scale-spring relative overflow-hidden border border-white/20 dark:border-white/5">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
-                    
                     <div className="relative">
-                        {/* Static Icon Container with Glow */}
                         <div className="w-24 h-24 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-full flex items-center justify-center shadow-lg border border-white/40 dark:border-white/10 relative z-10 backdrop-blur-md">
                             <i className="fa-solid fa-receipt text-4xl text-emerald-500/80 dark:text-emerald-400/80"></i>
                         </div>
-                        
-                        {/* Slower, Stronger Breathing Glow Effect */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/40 dark:bg-emerald-500/20 rounded-full blur-2xl animate-breathing"></div>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-emerald-400/40 dark:bg-emerald-400/20 rounded-full blur-md animate-breathing" style={{ animationDelay: '1s' }}></div>
                     </div>
                     {isFiltered && (
-                        <div className="mt-6 animate-slide-up">
+                        <div className="mt-6 animate-enter-smooth">
                             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">没有找到符合条件的记录</p>
-                            <p className="text-xs text-slate-400 mt-1">换个关键词试试？</p>
                         </div>
                     )}
                 </div>
             ) : (
                 <div className="space-y-3 pb-24">
                     {filteredList.map((t, index) => (
-                        <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}>
+                        <div key={t.id} className="animate-enter-smooth" style={{ animationDelay: `${Math.min(index * 30, 300)}ms`, animationFillMode: 'both' }}>
                             <TransactionItem 
                                 transaction={t} 
-                                onClick={() => {
-                                    // Regular click action (maybe detailed view later)
-                                }} 
                                 onLongPress={openContextMenu}
                             />
                         </div>
@@ -662,22 +602,18 @@ export default function App() {
       </div>
 
       {/* Filter Modal */}
-      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
-        {/* Backdrop */}
+      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-500 ${showFilter ? 'visible' : 'invisible'}`}>
         <div 
-          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
+          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[4px] transition-opacity duration-500 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
           onClick={() => setShowFilter(false)}
         ></div>
-        
-        {/* Content */}
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-500 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
                 <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
                     <i className="fa-solid fa-times"></i>
                 </button>
             </div>
-            
             <div className="space-y-6">
                 <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">交易类型</label>
@@ -686,14 +622,13 @@ export default function App() {
                             <button
                                 key={t}
                                 onClick={() => setFilterType(t)}
-                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-200 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-300 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                             >
                                 {t === 'ALL' ? '全部' : t === 'EXPENSE' ? '支出' : '收入'}
                             </button>
                         ))}
                     </div>
                 </div>
-                
                 <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">时间范围</label>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
@@ -701,15 +636,14 @@ export default function App() {
                             <button
                                 key={d}
                                 onClick={() => setFilterDate(d)}
-                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-200 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-300 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                             >
                                 {d === 'ALL' ? '全部' : d === 'THIS_MONTH' ? '本月' : '上月'}
                             </button>
                         ))}
                     </div>
                 </div>
-                
-                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-[24px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all">
+                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-[24px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all duration-300">
                     确认
                 </button>
             </div>
@@ -722,14 +656,11 @@ export default function App() {
             className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setContextMenuTarget(null)}
         ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex flex-col gap-2">
                 <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
                 <button 
-                    onClick={() => {
-                        setEditNoteText(contextMenuTarget?.note || '');
-                        setIsEditingNote(true);
-                    }}
+                    onClick={() => { setEditNoteText(contextMenuTarget?.note || ''); setIsEditingNote(true); }}
                     className="w-full py-4 rounded-[24px] bg-slate-100/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                     <i className="fa-regular fa-pen-to-square text-blue-500"></i> 修改备注
@@ -751,14 +682,14 @@ export default function App() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal (Custom) */}
+      {/* Delete Confirmation Modal */}
       <div className={`fixed inset-0 z-[90] flex items-center justify-center pointer-events-none transition-all duration-300 ${showDeleteConfirm ? 'visible' : 'invisible'}`}>
         <div 
             className={`absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300 pointer-events-auto ${showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setShowDeleteConfirm(false)}
         ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
-            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400 animate-scale-spring">
                 <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
             </div>
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 text-center">
@@ -788,12 +719,9 @@ export default function App() {
       <div className={`fixed inset-0 z-[80] flex items-center justify-center pointer-events-none transition-all duration-300 ${isEditingNote ? 'visible' : 'invisible'}`}>
          <div 
             className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
-            onClick={() => {
-                setIsEditingNote(false);
-                setContextMenuTarget(null);
-            }}
+            onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
         ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">修改备注</h3>
             <div className="bg-slate-100 dark:bg-slate-800 rounded-[20px] p-2 mb-4">
                 <input 
@@ -807,10 +735,7 @@ export default function App() {
             </div>
             <div className="flex gap-3">
                 <button 
-                    onClick={() => {
-                        setIsEditingNote(false);
-                        setContextMenuTarget(null);
-                    }}
+                    onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
                     className="flex-1 py-3 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
                 >
                     取消
@@ -829,9 +754,12 @@ export default function App() {
   );
 
   const renderStatsView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar relative z-10">
-        {/* Header - Reduced padding to 20px + safe area */}
-        <div className="pt-[calc(env(safe-area-inset-top)+20px)] px-6 pb-4 animate-slide-up">
+    <div className="h-full overflow-y-auto pb-32 no-scrollbar relative z-10 animate-enter-smooth">
+        {/* Header - Dynamic Padding */}
+        <div 
+            className="px-6 pb-4 transition-all duration-300"
+            style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
+        >
              <div className="flex justify-between items-center h-16">
                  <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">财务分析</h2>
                  <div className="w-10 h-10 glass-panel rounded-full flex items-center justify-center shadow-sm bg-white/30 dark:bg-slate-800/30">
@@ -841,12 +769,12 @@ export default function App() {
         </div>
 
         <div className="p-6 space-y-6">
-            <div className="animate-scale-in" style={{ animationDelay: '100ms', opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="animate-scale-spring" style={{ animationDelay: '50ms', opacity: 0, animationFillMode: 'forwards' }}>
                  <AnalysisChart transactions={transactions} />
             </div>
 
             {/* Monthly Summary */}
-            <div className="animate-slide-up" style={{ animationDelay: '200ms', opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="animate-enter-smooth" style={{ animationDelay: '150ms', opacity: 0, animationFillMode: 'forwards' }}>
                 <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 px-2 text-xs uppercase tracking-wide opacity-70">本月概览</h3>
                 <div className="glass-panel rounded-[32px] p-2 shadow-sm bg-white/30 dark:bg-slate-800/30">
                     <div className="flex items-center p-4 border-b border-slate-100/10 dark:border-white/5 last:border-0">
@@ -880,7 +808,7 @@ export default function App() {
       <AmbientBackground />
       
       {view === 'HOME' && renderHomeView()}
-      {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} />}
+      {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} isFullscreen={isFullscreen} />}
       {view === 'STATS' && renderStatsView()}
       
       {view !== 'ADD' && !isOverlayActive && <NavBar current={view} onChange={setView} />}
