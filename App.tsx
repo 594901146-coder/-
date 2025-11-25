@@ -244,6 +244,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null); // New ref for scrolling
 
   // Context Menu State
   const [contextMenuTarget, setContextMenuTarget] = useState<Transaction | null>(null);
@@ -430,6 +431,19 @@ export default function App() {
   const openContextMenu = (t: Transaction) => {
     setContextMenuTarget(t);
   };
+  
+  // Handler for search input focus
+  const handleSearchFocus = () => {
+      // Delay scrolling to allow keyboard to pop up and viewport to resize
+      setTimeout(() => {
+          if (searchContainerRef.current) {
+              searchContainerRef.current.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center'
+              });
+          }
+      }, 300);
+  };
 
   // Filter Logic
   const getFilteredTransactions = () => {
@@ -485,7 +499,7 @@ export default function App() {
   // --- Render Functions (Defined in App scope to access state, but not as nested components) ---
   
   const renderHomeView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar transition-colors duration-300 relative z-10">
+    <div className={`h-full overflow-y-auto no-scrollbar transition-colors duration-300 relative z-10 ${isSearchOpen ? 'pb-64' : 'pb-32'}`}>
       {/* Header - Reduced padding to 20px + safe area */}
       <div className="relative pt-[calc(env(safe-area-inset-top)+20px)] px-5 animate-slide-up">
           <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
@@ -583,7 +597,7 @@ export default function App() {
             </div>
 
             {/* Search Bar - Expandable */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out origin-top ${isSearchOpen ? 'max-h-24 opacity-100 mb-4 scale-y-100' : 'max-h-0 opacity-0 mb-0 scale-y-95'}`}>
+            <div ref={searchContainerRef} className={`overflow-hidden transition-all duration-300 ease-in-out origin-top ${isSearchOpen ? 'max-h-24 opacity-100 mb-4 scale-y-100' : 'max-h-0 opacity-0 mb-0 scale-y-95'}`}>
                 <div className="mx-2 relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <i className={`fa-solid fa-magnifying-glass text-slate-400 text-xs ${searchQuery ? 'animate-pulse text-blue-500' : ''}`}></i>
@@ -593,6 +607,7 @@ export default function App() {
                         type="text" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={handleSearchFocus}
                         placeholder="搜索备注或分类..."
                         className="w-full pl-10 pr-9 py-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[20px] text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:bg-white/90 dark:focus:bg-slate-800/90 focus:ring-2 focus:ring-blue-400/20 transition-all shadow-sm caret-blue-500"
                     />
