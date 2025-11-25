@@ -244,14 +244,17 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Context Menu State
+  const [contextMenuTarget, setContextMenuTarget] = useState<Transaction | null>(null);
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [editNoteText, setEditNoteText] = useState('');
+
   // Auto-focus search input when opened
   useEffect(() => {
     if (isSearchOpen) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
-    } else if (!searchQuery) {
-        // Clear query if closed and empty (optional)
     }
   }, [isSearchOpen]);
   
@@ -277,7 +280,27 @@ export default function App() {
       setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+
+    // Auto fullscreen on first interaction
+    const tryAutoFullscreen = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {
+            // Silently fail if blocked
+        });
+      }
+      // Remove listener after first attempt
+      document.removeEventListener('click', tryAutoFullscreen);
+      document.removeEventListener('touchstart', tryAutoFullscreen);
+    };
+
+    document.addEventListener('click', tryAutoFullscreen);
+    document.addEventListener('touchstart', tryAutoFullscreen);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('click', tryAutoFullscreen);
+      document.removeEventListener('touchstart', tryAutoFullscreen);
+    };
   }, []);
 
   const toggleFullScreen = () => {
@@ -365,6 +388,7 @@ export default function App() {
   const deleteTransaction = (id: string) => {
     if(confirm("确定要删除这条账单吗？")) {
         setTransactions(prev => prev.filter(t => t.id !== id));
+        setContextMenuTarget(null);
     }
   };
 
@@ -373,6 +397,20 @@ export default function App() {
     if (confirm("⚠️ 高危操作\n\n确定要清空所有账单数据吗？此操作无法撤销。")) {
         setTransactions([]);
     }
+  };
+
+  const handleUpdateNote = () => {
+    if (contextMenuTarget && editNoteText.trim()) {
+        setTransactions(prev => prev.map(t => 
+            t.id === contextMenuTarget.id ? { ...t, note: editNoteText } : t
+        ));
+        setIsEditingNote(false);
+        setContextMenuTarget(null);
+    }
+  };
+
+  const openContextMenu = (t: Transaction) => {
+    setContextMenuTarget(t);
   };
 
   // Filter Logic
@@ -573,7 +611,13 @@ export default function App() {
                 <div className="space-y-3 pb-24">
                     {filteredList.map((t, index) => (
                         <div key={t.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}>
-                            <TransactionItem transaction={t} onClick={() => deleteTransaction(t.id)} />
+                            <TransactionItem 
+                                transaction={t} 
+                                onClick={() => {
+                                    // Regular click action (maybe detailed view later)
+                                }} 
+                                onLongPress={openContextMenu}
+                            />
                         </div>
                     ))}
                 </div>
@@ -635,6 +679,83 @@ export default function App() {
             </div>
         </div>
       </div>
+
+      {/* Context Menu Modal */}
+      <div className={`fixed inset-0 z-[70] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote ? 'visible' : 'invisible'}`}>
+        <div 
+            className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
+            onClick={() => setContextMenuTarget(null)}
+        ></div>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${contextMenuTarget && !isEditingNote ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+            <div className="flex flex-col gap-2">
+                <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
+                <button 
+                    onClick={() => {
+                        setEditNoteText(contextMenuTarget?.note || '');
+                        setIsEditingNote(true);
+                    }}
+                    className="w-full py-4 rounded-[24px] bg-slate-100/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                    <i className="fa-regular fa-pen-to-square text-blue-500"></i> 修改备注
+                </button>
+                <button 
+                    onClick={() => deleteTransaction(contextMenuTarget?.id || '')}
+                    className="w-full py-4 rounded-[24px] bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                    <i className="fa-regular fa-trash-can"></i> 删除账单
+                </button>
+                <div className="h-2"></div>
+                <button 
+                    onClick={() => setContextMenuTarget(null)}
+                    className="w-full py-4 rounded-[24px] bg-white dark:bg-slate-800 text-slate-500 font-bold text-base shadow-sm active:scale-[0.98] transition-all"
+                >
+                    取消
+                </button>
+            </div>
+        </div>
+      </div>
+
+      {/* Edit Note Modal */}
+      <div className={`fixed inset-0 z-[80] flex items-center justify-center pointer-events-none transition-all duration-300 ${isEditingNote ? 'visible' : 'invisible'}`}>
+         <div 
+            className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
+            onClick={() => {
+                setIsEditingNote(false);
+                setContextMenuTarget(null);
+            }}
+        ></div>
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">修改备注</h3>
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-[20px] p-2 mb-4">
+                <input 
+                    type="text" 
+                    value={editNoteText}
+                    onChange={(e) => setEditNoteText(e.target.value)}
+                    className="w-full bg-transparent p-2 text-center text-slate-800 dark:text-white font-medium outline-none placeholder-slate-400"
+                    placeholder="输入新备注..."
+                    autoFocus
+                />
+            </div>
+            <div className="flex gap-3">
+                <button 
+                    onClick={() => {
+                        setIsEditingNote(false);
+                        setContextMenuTarget(null);
+                    }}
+                    className="flex-1 py-3 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
+                >
+                    取消
+                </button>
+                <button 
+                    onClick={handleUpdateNote}
+                    className="flex-1 py-3 rounded-[20px] bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                >
+                    保存
+                </button>
+            </div>
+        </div>
+      </div>
+
     </div>
   );
 
@@ -693,7 +814,7 @@ export default function App() {
       {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} />}
       {view === 'STATS' && renderStatsView()}
       
-      {view !== 'ADD' && !showFilter && <NavBar current={view} onChange={setView} />}
+      {view !== 'ADD' && !showFilter && !isEditingNote && <NavBar current={view} onChange={setView} />}
     </div>
   );
 }
