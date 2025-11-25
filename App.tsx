@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { Transaction, TransactionType, ViewState, Category } from './types';
@@ -9,17 +8,18 @@ import AnalysisChart from './components/AnalysisChart';
 
 const AmbientBackground = () => (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Performance Optimization: Add will-change-transform */}
         {/* Top Right Blob - Vibrant Purple */}
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-400/30 dark:bg-purple-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 dark:opacity-40 animate-blob"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-400/30 dark:bg-purple-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[60px] opacity-70 dark:opacity-40 animate-blob will-change-transform"></div>
         {/* Bottom Left Blob - Vibrant Emerald */}
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-400/30 dark:bg-emerald-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 dark:opacity-40 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-400/30 dark:bg-emerald-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[60px] opacity-70 dark:opacity-40 animate-blob animation-delay-2000 will-change-transform"></div>
         {/* Center/Moving Blob - Vibrant Blue */}
-        <div className="absolute top-[30%] left-[20%] w-[400px] h-[400px] bg-blue-400/30 dark:bg-blue-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 dark:opacity-40 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-[30%] left-[20%] w-[400px] h-[400px] bg-blue-400/30 dark:bg-blue-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[60px] opacity-70 dark:opacity-40 animate-blob animation-delay-4000 will-change-transform"></div>
     </div>
 );
 
 const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewState) => void }) => (
-  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[32px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-enter-smooth shadow-lg dark:shadow-slate-900/50">
+  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[32px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-enter-smooth shadow-lg dark:shadow-slate-900/50 gpu-accel">
     <button 
         onClick={() => onChange('HOME')} 
         className={`flex flex-col items-center justify-center gap-1 w-14 h-full relative transition-all duration-300 group`}
@@ -107,7 +107,7 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
     );
 
     return (
-      <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 animate-slide-up-modal`}>
+      <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 animate-slide-up-modal gpu-accel`}>
         
         {/* Header - Dynamic Padding */}
         <div 
@@ -152,18 +152,19 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
                     <div
                         key={cat}
                         className="aspect-square"
+                        // Optimized: Reduce delay for smoother feel
                         style={{ 
-                            animation: `scaleSpring 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) ${idx * 30}ms forwards`, 
+                            animation: `scaleSpring 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) ${Math.min(idx * 20, 300)}ms forwards`, 
                             opacity: 0, 
                             transform: 'scale(0.8)' 
                         }}
                     >
                         <button
                             onClick={() => setCategory(cat)}
-                            className={`w-full h-full flex flex-col items-center justify-center rounded-[24px] transition-all duration-300 border border-white/10 backdrop-blur-md ${
+                            className={`w-full h-full flex flex-col items-center justify-center rounded-[24px] transition-all duration-200 border border-white/10 ${
                                 category === cat 
-                                ? 'bg-slate-800/90 dark:bg-emerald-500/90 text-white shadow-lg scale-110 ring-2 ring-white/20 dark:ring-emerald-400/30' 
-                                : 'bg-white/20 dark:bg-slate-800/20 text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-700/40 hover:scale-105 active:scale-95'
+                                ? 'bg-slate-800/90 dark:bg-emerald-500/90 text-white shadow-lg scale-105 ring-2 ring-white/20 dark:ring-emerald-400/30' 
+                                : 'bg-white/40 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-700/60 hover:scale-105 active:scale-95'
                             }`}
                         >
                             <i className={`fa-solid mb-1.5 text-xl ${
@@ -182,7 +183,7 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
             </div>
 
             {/* Note Input */}
-            <div className="glass-panel p-4 rounded-[24px] flex items-center gap-3 transition-colors duration-300 bg-white/20 dark:bg-slate-800/30">
+            <div className="glass-panel p-4 rounded-[24px] flex items-center gap-3 transition-colors duration-300 bg-white/40 dark:bg-slate-800/40">
                 <i className="fa-regular fa-comment-dots text-slate-400"></i>
                 <input 
                     type="text" 
@@ -208,20 +209,20 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
 
         {/* Custom Numeric Keypad - Hidden when typing note */}
         {!isNoteFocused && (
-            <div className="flex-none rounded-t-[32px] glass-panel border-b-0 pt-6 px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] bg-white/40 dark:bg-slate-900/60 backdrop-blur-2xl animate-slide-up-modal">
+            <div className="flex-none rounded-t-[32px] glass-panel border-b-0 pt-6 px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] bg-white/60 dark:bg-slate-900/80 backdrop-blur-2xl animate-slide-up-modal gpu-accel">
                 <div className="grid grid-cols-4 gap-3">
-                    <KeypadButton val="1" onClick={() => handleKeypad('1')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                    <KeypadButton val="2" onClick={() => handleKeypad('2')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                    <KeypadButton val="3" onClick={() => handleKeypad('3')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="1" onClick={() => handleKeypad('1')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
+                    <KeypadButton val="2" onClick={() => handleKeypad('2')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
+                    <KeypadButton val="3" onClick={() => handleKeypad('3')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
                     <KeypadButton 
                         val={<i className="fa-solid fa-delete-left"></i>} 
                         onClick={() => handleKeypad('del')} 
-                        className="bg-slate-200/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-slate-200/50" 
+                        className="bg-slate-200/40 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 hover:bg-slate-200/60" 
                     />
 
-                    <KeypadButton val="4" onClick={() => handleKeypad('4')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                    <KeypadButton val="5" onClick={() => handleKeypad('5')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                    <KeypadButton val="6" onClick={() => handleKeypad('6')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="4" onClick={() => handleKeypad('4')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
+                    <KeypadButton val="5" onClick={() => handleKeypad('5')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
+                    <KeypadButton val="6" onClick={() => handleKeypad('6')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
                     <button 
                         onClick={handleSave} 
                         className="row-span-3 rounded-[20px] bg-slate-900/90 dark:bg-emerald-500/90 text-white text-xl font-bold shadow-lg shadow-slate-900/20 dark:shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center justify-center gap-1 hover:brightness-110 backdrop-blur-sm"
@@ -229,12 +230,12 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
                         <i className="fa-solid fa-check text-2xl"></i>
                     </button>
 
-                    <KeypadButton val="7" onClick={() => handleKeypad('7')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                    <KeypadButton val="8" onClick={() => handleKeypad('8')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                    <KeypadButton val="9" onClick={() => handleKeypad('9')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="7" onClick={() => handleKeypad('7')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
+                    <KeypadButton val="8" onClick={() => handleKeypad('8')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
+                    <KeypadButton val="9" onClick={() => handleKeypad('9')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
                     
-                    <KeypadButton val="." onClick={() => handleKeypad('.')} className="bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
-                    <KeypadButton val="0" onClick={() => handleKeypad('0')} className="col-span-2 bg-white/30 dark:bg-slate-800/30 text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50" />
+                    <KeypadButton val="." onClick={() => handleKeypad('.')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
+                    <KeypadButton val="0" onClick={() => handleKeypad('0')} className="col-span-2 bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
                 </div>
             </div>
         )}
@@ -306,22 +307,8 @@ export default function App() {
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
-    // Auto fullscreen on first interaction
-    const tryAutoFullscreen = () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-      document.removeEventListener('click', tryAutoFullscreen, true);
-      document.removeEventListener('touchend', tryAutoFullscreen, true);
-    };
-
-    document.addEventListener('click', tryAutoFullscreen, true);
-    document.addEventListener('touchend', tryAutoFullscreen, true);
-
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('click', tryAutoFullscreen, true);
-      document.removeEventListener('touchend', tryAutoFullscreen, true);
     };
   }, []);
 
@@ -458,7 +445,7 @@ export default function App() {
         className="relative px-5 transition-all duration-300" 
         style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
       >
-          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
+          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group gpu-accel">
              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
              
              <div className="relative z-10">
@@ -589,7 +576,13 @@ export default function App() {
             ) : (
                 <div className="space-y-3 pb-24">
                     {filteredList.map((t, index) => (
-                        <div key={t.id} className="animate-enter-smooth" style={{ animationDelay: `${Math.min(index * 30, 300)}ms`, animationFillMode: 'both' }}>
+                        <div 
+                            key={t.id} 
+                            // Performance Optimization: Only animate the first 10 items.
+                            // Staggered animation on long lists kills performance.
+                            className={index < 10 ? "animate-enter-smooth" : ""} 
+                            style={index < 10 ? { animationDelay: `${index * 30}ms`, animationFillMode: 'both' } : {}}
+                        >
                             <TransactionItem 
                                 transaction={t} 
                                 onLongPress={openContextMenu}
@@ -602,12 +595,12 @@ export default function App() {
       </div>
 
       {/* Filter Modal */}
-      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-500 ${showFilter ? 'visible' : 'invisible'}`}>
+      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
         <div 
-          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[4px] transition-opacity duration-500 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
+          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[4px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
           onClick={() => setShowFilter(false)}
         ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-500 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
                 <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
@@ -656,7 +649,7 @@ export default function App() {
             className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setContextMenuTarget(null)}
         ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex flex-col gap-2">
                 <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
                 <button 
@@ -688,7 +681,7 @@ export default function App() {
             className={`absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300 pointer-events-auto ${showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setShowDeleteConfirm(false)}
         ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
             <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400 animate-scale-spring">
                 <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
             </div>
@@ -721,7 +714,7 @@ export default function App() {
             className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
         ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">修改备注</h3>
             <div className="bg-slate-100 dark:bg-slate-800 rounded-[20px] p-2 mb-4">
                 <input 
