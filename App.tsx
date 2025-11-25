@@ -108,8 +108,8 @@ const AddTransactionView = ({ onSave, onClose }: { onSave: (t: Transaction) => v
     return (
       <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 ${isMounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
         
-        {/* Header */}
-        <div className="pt-[env(safe-area-inset-top)] px-4 pb-2 flex items-center justify-between z-30">
+        {/* Header - Added Extra Padding for Mobile Browser Bar */}
+        <div className="pt-[calc(env(safe-area-inset-top)+48px)] px-4 pb-2 flex items-center justify-between z-30">
             <button onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-600 dark:text-slate-300 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                 <i className="fa-solid fa-times text-xl"></i>
             </button>
@@ -486,8 +486,8 @@ export default function App() {
   
   const renderHomeView = () => (
     <div className="h-full overflow-y-auto pb-32 no-scrollbar transition-colors duration-300 relative z-10">
-      {/* Header / Balance Card */}
-      <div className="relative pt-[env(safe-area-inset-top)] px-5 animate-slide-up">
+      {/* Header - Added Extra Padding for Mobile Browser Bar */}
+      <div className="relative pt-[calc(env(safe-area-inset-top)+48px)] px-5 animate-slide-up">
           <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
              {/* Gradient Shine effect */}
              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
@@ -815,8 +815,8 @@ export default function App() {
 
   const renderStatsView = () => (
     <div className="h-full overflow-y-auto pb-32 no-scrollbar relative z-10">
-        {/* Header */}
-        <div className="pt-[env(safe-area-inset-top)] px-6 pb-4 animate-slide-up">
+        {/* Header - Added Extra Padding for Mobile Browser Bar */}
+        <div className="pt-[calc(env(safe-area-inset-top)+48px)] px-6 pb-4 animate-slide-up">
              <div className="flex justify-between items-center h-16">
                  <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">财务分析</h2>
                  <div className="w-10 h-10 glass-panel rounded-full flex items-center justify-center shadow-sm bg-white/30 dark:bg-slate-800/30">
@@ -861,7 +861,7 @@ export default function App() {
   );
 
   return (
-    <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden">
+    <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden h-[100dvh]">
       <AmbientBackground />
       
       {view === 'HOME' && renderHomeView()}
