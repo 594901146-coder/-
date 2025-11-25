@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { Transaction, TransactionType, ViewState, Category } from './types';
@@ -249,6 +250,11 @@ export default function App() {
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [editNoteText, setEditNoteText] = useState('');
 
+  // Delete Confirm State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleteMode, setDeleteMode] = useState<'SINGLE' | 'ALL'>('SINGLE');
+
   // Auto-focus search input when opened
   useEffect(() => {
     if (isSearchOpen) {
@@ -284,22 +290,24 @@ export default function App() {
     // Auto fullscreen on first interaction
     const tryAutoFullscreen = () => {
       if (!document.fullscreenElement) {
+        // Use capture to ensure we handle this early
         document.documentElement.requestFullscreen().catch(() => {
-            // Silently fail if blocked
+            // Silently fail if blocked or not supported (iOS Safari)
         });
       }
       // Remove listener after first attempt
-      document.removeEventListener('click', tryAutoFullscreen);
-      document.removeEventListener('touchstart', tryAutoFullscreen);
+      document.removeEventListener('click', tryAutoFullscreen, true);
+      document.removeEventListener('touchend', tryAutoFullscreen, true);
     };
 
-    document.addEventListener('click', tryAutoFullscreen);
-    document.addEventListener('touchstart', tryAutoFullscreen);
+    // Use capture: true to catch the event early
+    document.addEventListener('click', tryAutoFullscreen, true);
+    document.addEventListener('touchend', tryAutoFullscreen, true);
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('click', tryAutoFullscreen);
-      document.removeEventListener('touchstart', tryAutoFullscreen);
+      document.removeEventListener('click', tryAutoFullscreen, true);
+      document.removeEventListener('touchend', tryAutoFullscreen, true);
     };
   }, []);
 
@@ -385,18 +393,28 @@ export default function App() {
     setView('HOME');
   };
 
-  const deleteTransaction = (id: string) => {
-    if(confirm("确定要删除这条账单吗？")) {
-        setTransactions(prev => prev.filter(t => t.id !== id));
-        setContextMenuTarget(null);
+  const confirmDelete = () => {
+    if (deleteMode === 'ALL') {
+        setTransactions([]);
+    } else if (pendingDeleteId) {
+        setTransactions(prev => prev.filter(t => t.id !== pendingDeleteId));
     }
+    setShowDeleteConfirm(false);
+    setPendingDeleteId(null);
+    setContextMenuTarget(null);
   };
 
-  const clearAllTransactions = () => {
+  const promptDeleteTransaction = (id: string) => {
+    setPendingDeleteId(id);
+    setDeleteMode('SINGLE');
+    setContextMenuTarget(null); // Hide context menu
+    setShowDeleteConfirm(true); // Show confirmation modal
+  };
+
+  const promptClearAll = () => {
     if (transactions.length === 0) return;
-    if (confirm("⚠️ 高危操作\n\n确定要清空所有账单数据吗？此操作无法撤销。")) {
-        setTransactions([]);
-    }
+    setDeleteMode('ALL');
+    setShowDeleteConfirm(true);
   };
 
   const handleUpdateNote = () => {
@@ -460,6 +478,9 @@ export default function App() {
 
   const filteredList = getFilteredTransactions();
   const isFiltered = filterType !== 'ALL' || filterDate !== 'ALL' || searchQuery.trim() !== '';
+
+  // Determine if any overlay is active to hide NavBar
+  const isOverlayActive = showFilter || isEditingNote || contextMenuTarget !== null || showDeleteConfirm;
 
   // --- Render Functions (Defined in App scope to access state, but not as nested components) ---
   
@@ -545,7 +566,7 @@ export default function App() {
 
                     {transactions.length > 0 && (
                         <button 
-                            onClick={clearAllTransactions}
+                            onClick={promptClearAll}
                             className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors active:scale-90"
                             title="清空所有账单"
                         >
@@ -681,12 +702,12 @@ export default function App() {
       </div>
 
       {/* Context Menu Modal */}
-      <div className={`fixed inset-0 z-[70] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote ? 'visible' : 'invisible'}`}>
+      <div className={`fixed inset-0 z-[70] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
         <div 
-            className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
+            className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setContextMenuTarget(null)}
         ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${contextMenuTarget && !isEditingNote ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.16, 1, 0.3, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex flex-col gap-2">
                 <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
                 <button 
@@ -699,7 +720,7 @@ export default function App() {
                     <i className="fa-regular fa-pen-to-square text-blue-500"></i> 修改备注
                 </button>
                 <button 
-                    onClick={() => deleteTransaction(contextMenuTarget?.id || '')}
+                    onClick={() => promptDeleteTransaction(contextMenuTarget?.id || '')}
                     className="w-full py-4 rounded-[24px] bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                     <i className="fa-regular fa-trash-can"></i> 删除账单
@@ -710,6 +731,39 @@ export default function App() {
                     className="w-full py-4 rounded-[24px] bg-white dark:bg-slate-800 text-slate-500 font-bold text-base shadow-sm active:scale-[0.98] transition-all"
                 >
                     取消
+                </button>
+            </div>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal (Custom) */}
+      <div className={`fixed inset-0 z-[90] flex items-center justify-center pointer-events-none transition-all duration-300 ${showDeleteConfirm ? 'visible' : 'invisible'}`}>
+        <div 
+            className={`absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300 pointer-events-auto ${showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
+            onClick={() => setShowDeleteConfirm(false)}
+        ></div>
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
+                <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 text-center">
+                {deleteMode === 'ALL' ? '清空所有数据?' : '删除这条账单?'}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
+                {deleteMode === 'ALL' ? '此操作将永久删除所有交易记录，无法撤销。' : '此操作无法撤销，确定要继续吗？'}
+            </p>
+            <div className="flex gap-3">
+                <button 
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="flex-1 py-3.5 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
+                >
+                    取消
+                </button>
+                <button 
+                    onClick={confirmDelete}
+                    className="flex-1 py-3.5 rounded-[20px] bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg shadow-red-500/30 transition-all active:scale-95"
+                >
+                    {deleteMode === 'ALL' ? '全部清空' : '删除'}
                 </button>
             </div>
         </div>
@@ -814,7 +868,7 @@ export default function App() {
       {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} />}
       {view === 'STATS' && renderStatsView()}
       
-      {view !== 'ADD' && !showFilter && !isEditingNote && <NavBar current={view} onChange={setView} />}
+      {view !== 'ADD' && !isOverlayActive && <NavBar current={view} onChange={setView} />}
     </div>
   );
 }
