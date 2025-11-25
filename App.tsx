@@ -594,7 +594,7 @@ export default function App() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="搜索备注或分类..."
-                        className="w-full pl-10 pr-9 py-3 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[20px] text-sm font-medium text-slate-700 dark:text-slate-200 placeholder-slate-400 outline-none focus:bg-white/60 dark:focus:bg-slate-800/60 focus:ring-2 focus:ring-blue-400/20 transition-all shadow-sm"
+                        className="w-full pl-10 pr-9 py-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[20px] text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:bg-white/90 dark:focus:bg-slate-800/90 focus:ring-2 focus:ring-blue-400/20 transition-all shadow-sm caret-blue-500"
                     />
                      {searchQuery && (
                         <button 
