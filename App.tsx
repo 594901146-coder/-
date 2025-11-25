@@ -307,8 +307,23 @@ export default function App() {
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
+    // Auto fullscreen on first interaction
+    const tryAutoFullscreen = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+      document.removeEventListener('click', tryAutoFullscreen, true);
+      document.removeEventListener('touchend', tryAutoFullscreen, true);
+    };
+
+    // Add capture phase listeners to catch the earliest possible interaction
+    document.addEventListener('click', tryAutoFullscreen, true);
+    document.addEventListener('touchend', tryAutoFullscreen, true);
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('click', tryAutoFullscreen, true);
+      document.removeEventListener('touchend', tryAutoFullscreen, true);
     };
   }, []);
 
