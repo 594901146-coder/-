@@ -61,10 +61,7 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
     const [note, setNote] = useState('');
     const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
     const [category, setCategory] = useState<string>(Category.FOOD);
-    const [isMounted, setIsMounted] = useState(false);
     const [isNoteFocused, setIsNoteFocused] = useState(false);
-
-    useEffect(() => setIsMounted(true), []);
 
     const handleSave = () => {
       const val = parseFloat(amount);
@@ -638,6 +635,7 @@ export default function App() {
                   </div>
               )}
             </div>
+        </div>
         </div>
       )}
       
