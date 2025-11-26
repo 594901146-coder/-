@@ -19,7 +19,7 @@ const AmbientBackground = () => (
 );
 
 const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewState) => void }) => (
-  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[32px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-enter-smooth shadow-lg dark:shadow-slate-900/50 gpu-accel">
+  <div className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[32px] glass-panel flex justify-between items-center px-8 z-50 transition-all duration-300 animate-enter-smooth shadow-lg dark:shadow-slate-900/50">
     <button 
         onClick={() => onChange('HOME')} 
         className={`flex flex-col items-center justify-center gap-1 w-14 h-full relative transition-all duration-300 group`}
@@ -107,7 +107,7 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
     );
 
     return (
-      <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 animate-slide-up-modal gpu-accel`}>
+      <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 animate-slide-up-modal`}>
         
         {/* Header - Dynamic Padding */}
         <div 
@@ -209,7 +209,7 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
 
         {/* Custom Numeric Keypad - Hidden when typing note */}
         {!isNoteFocused && (
-            <div className="flex-none rounded-t-[32px] glass-panel border-b-0 pt-6 px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] bg-white/60 dark:bg-slate-900/80 backdrop-blur-2xl animate-slide-up-modal gpu-accel">
+            <div className="flex-none rounded-t-[32px] glass-panel border-b-0 pt-6 px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] bg-white/60 dark:bg-slate-900/80 backdrop-blur-2xl animate-slide-up-modal">
                 <div className="grid grid-cols-4 gap-3">
                     <KeypadButton val="1" onClick={() => handleKeypad('1')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
                     <KeypadButton val="2" onClick={() => handleKeypad('2')} className="bg-white/40 dark:bg-slate-800/40 text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-700/60" />
@@ -242,6 +242,57 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
       </div>
     );
 };
+
+// Extracted StatsView Component
+const StatsView = ({ transactions, income, expense, isFullscreen }: { transactions: Transaction[], income: number, expense: number, isFullscreen: boolean }) => (
+    <div className="h-full overflow-y-auto pb-32 no-scrollbar relative z-10 animate-enter-smooth">
+        {/* Header - Dynamic Padding */}
+        <div 
+            className="px-6 pb-4 transition-all duration-300"
+            style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
+        >
+             <div className="flex justify-between items-center h-16">
+                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">财务分析</h2>
+                 <div className="w-10 h-10 glass-panel rounded-full flex items-center justify-center shadow-sm bg-white/30 dark:bg-slate-800/30">
+                    <i className="fa-solid fa-calendar text-slate-400 dark:text-slate-300"></i>
+                 </div>
+             </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+            <div className="animate-scale-spring" style={{ animationDelay: '50ms', opacity: 0, animationFillMode: 'forwards' }}>
+                 <AnalysisChart transactions={transactions} />
+            </div>
+
+            {/* Monthly Summary */}
+            <div className="animate-enter-smooth" style={{ animationDelay: '150ms', opacity: 0, animationFillMode: 'forwards' }}>
+                <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 px-2 text-xs uppercase tracking-wide opacity-70">本月概览</h3>
+                <div className="glass-panel rounded-[32px] p-2 shadow-sm bg-white/30 dark:bg-slate-800/30">
+                    <div className="flex items-center p-4 border-b border-slate-100/10 dark:border-white/5 last:border-0">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100/50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mr-4 backdrop-blur-sm">
+                            <i className="fa-solid fa-arrow-down"></i>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-0.5">总收入</p>
+                            <p className="font-bold text-lg text-slate-800 dark:text-slate-100">¥{income.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center p-4">
+                        <div className="w-10 h-10 rounded-full bg-red-100/50 dark:bg-red-900/30 flex items-center justify-center text-red-500 dark:text-red-400 mr-4 backdrop-blur-sm">
+                            <i className="fa-solid fa-arrow-up"></i>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-0.5">总支出</p>
+                            <p className="font-bold text-lg text-slate-800 dark:text-slate-100">¥{expense.toFixed(2)}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="h-20"></div>
+        </div>
+    </div>
+);
 
 // -- Main App Component --
 
@@ -460,7 +511,7 @@ export default function App() {
         className="relative px-5 transition-all duration-300" 
         style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
       >
-          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group gpu-accel">
+          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
              
              <div className="relative z-10">
@@ -608,6 +659,15 @@ export default function App() {
             )}
           </div>
       </div>
+  );
+
+  return (
+    <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden h-[100dvh]">
+      <AmbientBackground />
+      
+      {view === 'HOME' && renderHomeView()}
+      {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} isFullscreen={isFullscreen} />}
+      {view === 'STATS' && <StatsView transactions={transactions} income={income} expense={expense} isFullscreen={isFullscreen} />}
 
       {/* Filter Modal */}
       <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
@@ -615,7 +675,7 @@ export default function App() {
           className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[4px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
           onClick={() => setShowFilter(false)}
         ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
                 <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
@@ -664,7 +724,7 @@ export default function App() {
             className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setContextMenuTarget(null)}
         ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
             <div className="flex flex-col gap-2">
                 <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
                 <button 
@@ -696,7 +756,7 @@ export default function App() {
             className={`absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300 pointer-events-auto ${showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setShowDeleteConfirm(false)}
         ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
             <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400 animate-scale-spring">
                 <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
             </div>
@@ -729,7 +789,7 @@ export default function App() {
             className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
         ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) gpu-accel ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">修改备注</h3>
             <div className="bg-slate-100 dark:bg-slate-800 rounded-[20px] p-2 mb-4">
                 <input 
@@ -757,67 +817,6 @@ export default function App() {
             </div>
         </div>
       </div>
-
-    </div>
-  );
-
-  const renderStatsView = () => (
-    <div className="h-full overflow-y-auto pb-32 no-scrollbar relative z-10 animate-enter-smooth">
-        {/* Header - Dynamic Padding */}
-        <div 
-            className="px-6 pb-4 transition-all duration-300"
-            style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
-        >
-             <div className="flex justify-between items-center h-16">
-                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">财务分析</h2>
-                 <div className="w-10 h-10 glass-panel rounded-full flex items-center justify-center shadow-sm bg-white/30 dark:bg-slate-800/30">
-                    <i className="fa-solid fa-calendar text-slate-400 dark:text-slate-300"></i>
-                 </div>
-             </div>
-        </div>
-
-        <div className="p-6 space-y-6">
-            <div className="animate-scale-spring" style={{ animationDelay: '50ms', opacity: 0, animationFillMode: 'forwards' }}>
-                 <AnalysisChart transactions={transactions} />
-            </div>
-
-            {/* Monthly Summary */}
-            <div className="animate-enter-smooth" style={{ animationDelay: '150ms', opacity: 0, animationFillMode: 'forwards' }}>
-                <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 px-2 text-xs uppercase tracking-wide opacity-70">本月概览</h3>
-                <div className="glass-panel rounded-[32px] p-2 shadow-sm bg-white/30 dark:bg-slate-800/30">
-                    <div className="flex items-center p-4 border-b border-slate-100/10 dark:border-white/5 last:border-0">
-                        <div className="w-10 h-10 rounded-full bg-emerald-100/50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mr-4 backdrop-blur-sm">
-                            <i className="fa-solid fa-arrow-down"></i>
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-0.5">总收入</p>
-                            <p className="font-bold text-lg text-slate-800 dark:text-slate-100">¥{income.toFixed(2)}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center p-4">
-                        <div className="w-10 h-10 rounded-full bg-red-100/50 dark:bg-red-900/30 flex items-center justify-center text-red-500 dark:text-red-400 mr-4 backdrop-blur-sm">
-                            <i className="fa-solid fa-arrow-up"></i>
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-0.5">总支出</p>
-                            <p className="font-bold text-lg text-slate-800 dark:text-slate-100">¥{expense.toFixed(2)}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="h-20"></div>
-        </div>
-    </div>
-  );
-
-  return (
-    <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden h-[100dvh]">
-      <AmbientBackground />
-      
-      {view === 'HOME' && renderHomeView()}
-      {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} isFullscreen={isFullscreen} />}
-      {view === 'STATS' && renderStatsView()}
       
       {view !== 'ADD' && !isOverlayActive && <NavBar current={view} onChange={setView} />}
     </div>

@@ -93,12 +93,6 @@
         transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
       }
       
-      /* Hardware Acceleration Helper */
-      .gpu-accel {
-        transform: translate3d(0, 0, 0);
-        will-change: transform, opacity;
-      }
-
       /* Glass utility helper - Optimized for Performance */
       /* Reduced blur radius (24px -> 16px) to save GPU */
       .glass-panel {
@@ -143,12 +137,12 @@
 <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
-    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
     "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
     "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
