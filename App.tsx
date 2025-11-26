@@ -47,7 +47,14 @@ const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewS
   </div>
 );
 
-// -- Separated View Components to fix Focus/Re-render issues --
+const KeypadButton = ({ val, onClick, className = '' }: { val: string | React.ReactNode, onClick: () => void, className?: string }) => (
+    <button 
+        onClick={onClick} 
+        className={`h-16 rounded-[20px] text-2xl font-bold backdrop-blur-md active:scale-95 transition-all duration-150 flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-white/10 dark:border-white/5 ${className}`}
+    >
+        {val}
+    </button>
+);
 
 const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Transaction) => void, onClose: () => void, isFullscreen: boolean }) => {
     const [amount, setAmount] = useState('0');
@@ -95,15 +102,6 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
             }
         }
     };
-
-    const KeypadButton = ({ val, onClick, className = '' }: { val: string | React.ReactNode, onClick: () => void, className?: string }) => (
-        <button 
-            onClick={onClick} 
-            className={`h-16 rounded-[20px] text-2xl font-bold backdrop-blur-md active:scale-95 transition-all duration-150 flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-white/10 dark:border-white/5 ${className}`}
-        >
-            {val}
-        </button>
-    );
 
     return (
       <div className={`h-full flex flex-col bg-slate-100/30 dark:bg-slate-900/40 backdrop-blur-3xl transition-all duration-500 z-50 absolute inset-0 animate-slide-up-modal`}>
@@ -484,170 +482,165 @@ export default function App() {
   const isFiltered = filterType !== 'ALL' || filterDate !== 'ALL' || searchQuery.trim() !== '';
   const isOverlayActive = showFilter || isEditingNote || contextMenuTarget !== null || showDeleteConfirm;
 
-  // -- Render Functions --
-  
-  const renderHomeView = () => (
-    <div className={`h-full overflow-y-auto no-scrollbar relative z-10 animate-enter-smooth ${isSearchOpen ? 'pb-64' : 'pb-32'}`}>
-      {/* Header - Dynamic Padding */}
-      <div 
-        className="relative px-5 transition-all duration-300" 
-        style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
-      >
-          <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
-             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
-             
-             <div className="relative z-10">
-                 <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2 bg-slate-100/30 dark:bg-slate-800/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,111,153,0.8)]"></span>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">极简记账</span>
-                    </div>
-                    
-                    <div className="flex gap-3">
-                        <button 
-                            onClick={toggleFullScreen}
-                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-[20px] flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
-                        >
-                            <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-slate-600 dark:text-slate-300 text-xs`}></i>
-                        </button>
-
-                        <button 
-                            onClick={handleThemeToggle}
-                            className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-[20px] flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
-                        >
-                            <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
-                        </button>
-                    </div>
-                 </div>
-
-                 <div className="text-center mb-8">
-                     <p className="text-slate-600 dark:text-slate-300 text-xs font-bold mb-2 tracking-widest uppercase opacity-80">本月结余</p>
-                     <h1 className="text-[3.5rem] font-bold tracking-tighter leading-none text-slate-800 dark:text-white drop-shadow-sm">
-                        <span className="text-2xl align-top mr-1 font-medium opacity-50">¥</span>
-                        {balance.toFixed(2)}
-                     </h1>
-                 </div>
-
-                 <div className="flex gap-3">
-                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
-                        <div className="flex items-center gap-2 mb-1 opacity-80">
-                            <div className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center">
-                                <i className="fa-solid fa-arrow-down text-emerald-600 dark:text-emerald-400 text-[10px]"></i>
-                            </div>
-                            <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">收入</span>
-                        </div>
-                        <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400 tracking-tight">¥{income.toFixed(2)}</p>
-                    </div>
-                    <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
-                         <div className="flex items-center gap-2 mb-1 opacity-80">
-                            <div className="w-4 h-4 rounded-full bg-rose-400/20 flex items-center justify-center">
-                                <i className="fa-solid fa-arrow-up text-rose-500 dark:text-rose-400 text-[10px]"></i>
-                            </div>
-                            <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">支出</span>
-                        </div>
-                        <p className="font-bold text-lg text-rose-500 dark:text-rose-400 tracking-tight">¥{expense.toFixed(2)}</p>
-                    </div>
-                 </div>
-             </div>
-          </div>
-
-          {/* Transactions List */}
-          <div className="mt-8 relative z-20">
-            <div className="flex justify-between items-center mb-4 px-2">
-                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
-                <div className="flex gap-2">
-                    <button 
-                        onClick={() => setIsSearchOpen(!isSearchOpen)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-[20px] transition-all active:scale-90 ${isSearchOpen || searchQuery ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'bg-white/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-white/40'}`}
-                    >
-                        <i className={`fa-solid fa-magnifying-glass text-xs transition-transform ${isSearchOpen ? 'scale-110' : ''}`}></i>
-                    </button>
-
-                    {transactions.length > 0 && (
-                        <button 
-                            onClick={promptClearAll}
-                            className="w-8 h-8 flex items-center justify-center rounded-[20px] bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors active:scale-90"
-                        >
-                            <i className="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    )}
-                    <button 
-                        onClick={() => setShowFilter(true)}
-                        className={`text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm border border-white/10 ${isFiltered && !searchQuery ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'text-slate-500 dark:text-slate-400 bg-white/30 dark:bg-slate-800/30 hover:bg-white/40'}`}
-                    >
-                        {isFiltered && !searchQuery ? '已筛选' : '全部'} <i className={`fa-solid ${isFiltered && !searchQuery ? 'fa-filter' : 'fa-chevron-right'} text-[10px]`}></i>
-                    </button>
-                </div>
-            </div>
-
-            <div ref={searchContainerRef} className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-top ${isSearchOpen ? 'max-h-24 opacity-100 mb-4 scale-y-100' : 'max-h-0 opacity-0 mb-0 scale-y-95'}`}>
-                <div className="mx-2 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <i className={`fa-solid fa-magnifying-glass text-slate-400 text-xs ${searchQuery ? 'animate-pulse text-blue-500' : ''}`}></i>
-                    </div>
-                    <input 
-                        ref={searchInputRef}
-                        type="text" 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={handleSearchFocus}
-                        placeholder="搜索备注或分类..."
-                        className="w-full pl-10 pr-9 py-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[20px] text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:bg-white/90 dark:focus:bg-slate-800/90 focus:ring-2 focus:ring-blue-400/20 transition-all shadow-sm caret-blue-500"
-                    />
-                     {searchQuery && (
-                        <button 
-                            onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 flex items-center justify-center text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 animate-scale-spring"
-                        >
-                            <i className="fa-solid fa-times"></i>
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {filteredList.length === 0 ? (
-                <div className="glass-panel rounded-[32px] p-12 flex flex-col items-center justify-center text-center animate-scale-spring relative overflow-hidden border border-white/20 dark:border-white/5">
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
-                    <div className="relative">
-                        <div className="w-24 h-24 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-full flex items-center justify-center shadow-lg border border-white/40 dark:border-white/10 relative z-10 backdrop-blur-md">
-                            <i className="fa-solid fa-receipt text-4xl text-emerald-500/80 dark:text-emerald-400/80"></i>
-                        </div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/40 dark:bg-emerald-500/20 rounded-full blur-2xl animate-breathing"></div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-emerald-400/40 dark:bg-emerald-400/20 rounded-full blur-md animate-breathing" style={{ animationDelay: '1s' }}></div>
-                    </div>
-                    {isFiltered && (
-                        <div className="mt-6 animate-enter-smooth">
-                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">没有找到符合条件的记录</p>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <div className="space-y-3 pb-24">
-                    {filteredList.map((t, index) => (
-                        <div 
-                            key={t.id} 
-                            // Performance Optimization: Only animate the first 10 items.
-                            // Staggered animation on long lists kills performance.
-                            className={index < 10 ? "animate-enter-smooth" : ""} 
-                            style={index < 10 ? { animationDelay: `${index * 30}ms`, animationFillMode: 'both' } : {}}
-                        >
-                            <TransactionItem 
-                                transaction={t} 
-                                onLongPress={openContextMenu}
-                            />
-                        </div>
-                    ))}
-                </div>
-            )}
-          </div>
-      </div>
-  );
-
   return (
     <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden h-[100dvh]">
       <AmbientBackground />
       
-      {view === 'HOME' && renderHomeView()}
+      {view === 'HOME' && (
+        <div className={`h-full overflow-y-auto no-scrollbar relative z-10 animate-enter-smooth ${isSearchOpen ? 'pb-64' : 'pb-32'}`}>
+        {/* Header - Dynamic Padding */}
+        <div 
+          className="relative px-5 transition-all duration-300" 
+          style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isFullscreen ? '12px' : '20px'})` }}
+        >
+            <div className="mt-2 p-6 pb-8 glass-panel rounded-[32px] shadow-xl relative overflow-hidden transition-all duration-300 hover:shadow-2xl group">
+               <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
+               
+               <div className="relative z-10">
+                   <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-2 bg-slate-100/30 dark:bg-slate-800/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,111,153,0.8)]"></span>
+                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">极简记账</span>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                          <button 
+                              onClick={toggleFullScreen}
+                              className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-[20px] flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
+                          >
+                              <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-slate-600 dark:text-slate-300 text-xs`}></i>
+                          </button>
+  
+                          <button 
+                              onClick={handleThemeToggle}
+                              className="w-9 h-9 bg-slate-100/30 dark:bg-slate-800/40 rounded-[20px] flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all hover:bg-white/40"
+                          >
+                              <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-slate-600 dark:text-slate-300 text-xs`}></i>
+                          </button>
+                      </div>
+                   </div>
+  
+                   <div className="text-center mb-8">
+                       <p className="text-slate-600 dark:text-slate-300 text-xs font-bold mb-2 tracking-widest uppercase opacity-80">本月结余</p>
+                       <h1 className="text-[3.5rem] font-bold tracking-tighter leading-none text-slate-800 dark:text-white drop-shadow-sm">
+                          <span className="text-2xl align-top mr-1 font-medium opacity-50">¥</span>
+                          {balance.toFixed(2)}
+                       </h1>
+                   </div>
+  
+                   <div className="flex gap-3">
+                      <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
+                          <div className="flex items-center gap-2 mb-1 opacity-80">
+                              <div className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                                  <i className="fa-solid fa-arrow-down text-emerald-600 dark:text-emerald-400 text-[10px]"></i>
+                              </div>
+                              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">收入</span>
+                          </div>
+                          <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400 tracking-tight">¥{income.toFixed(2)}</p>
+                      </div>
+                      <div className="flex-1 bg-white/20 dark:bg-slate-900/40 backdrop-blur-md rounded-[24px] p-4 border border-white/10 shadow-sm hover:bg-white/30 dark:hover:bg-slate-800/50 transition-colors">
+                           <div className="flex items-center gap-2 mb-1 opacity-80">
+                              <div className="w-4 h-4 rounded-full bg-rose-400/20 flex items-center justify-center">
+                                  <i className="fa-solid fa-arrow-up text-rose-500 dark:text-rose-400 text-[10px]"></i>
+                              </div>
+                              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">支出</span>
+                          </div>
+                          <p className="font-bold text-lg text-rose-500 dark:text-rose-400 tracking-tight">¥{expense.toFixed(2)}</p>
+                      </div>
+                   </div>
+               </div>
+            </div>
+  
+            {/* Transactions List */}
+            <div className="mt-8 relative z-20">
+              <div className="flex justify-between items-center mb-4 px-2">
+                  <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">近期明细</h2>
+                  <div className="flex gap-2">
+                      <button 
+                          onClick={() => setIsSearchOpen(!isSearchOpen)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-[20px] transition-all active:scale-90 ${isSearchOpen || searchQuery ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' : 'bg-white/30 dark:bg-slate-800/30 text-slate-500 dark:text-slate-400 hover:bg-white/40'}`}
+                      >
+                          <i className={`fa-solid fa-magnifying-glass text-xs transition-transform ${isSearchOpen ? 'scale-110' : ''}`}></i>
+                      </button>
+  
+                      {transactions.length > 0 && (
+                          <button 
+                              onClick={promptClearAll}
+                              className="w-8 h-8 flex items-center justify-center rounded-[20px] bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 transition-colors active:scale-90"
+                          >
+                              <i className="fa-solid fa-trash-can text-xs"></i>
+                          </button>
+                      )}
+                      <button 
+                          onClick={() => setShowFilter(true)}
+                          className={`text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm border border-white/10 ${isFiltered && !searchQuery ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'text-slate-500 dark:text-slate-400 bg-white/30 dark:bg-slate-800/30 hover:bg-white/40'}`}
+                      >
+                          {isFiltered && !searchQuery ? '已筛选' : '全部'} <i className={`fa-solid ${isFiltered && !searchQuery ? 'fa-filter' : 'fa-chevron-right'} text-[10px]`}></i>
+                      </button>
+                  </div>
+              </div>
+  
+              <div ref={searchContainerRef} className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-top ${isSearchOpen ? 'max-h-24 opacity-100 mb-4 scale-y-100' : 'max-h-0 opacity-0 mb-0 scale-y-95'}`}>
+                  <div className="mx-2 relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <i className={`fa-solid fa-magnifying-glass text-slate-400 text-xs ${searchQuery ? 'animate-pulse text-blue-500' : ''}`}></i>
+                      </div>
+                      <input 
+                          ref={searchInputRef}
+                          type="text" 
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onFocus={handleSearchFocus}
+                          placeholder="搜索备注或分类..."
+                          className="w-full pl-10 pr-9 py-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[20px] text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:bg-white/90 dark:focus:bg-slate-800/90 focus:ring-2 focus:ring-blue-400/20 transition-all shadow-sm caret-blue-500"
+                      />
+                       {searchQuery && (
+                          <button 
+                              onClick={() => setSearchQuery('')}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 flex items-center justify-center text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 animate-scale-spring"
+                          >
+                              <i className="fa-solid fa-times"></i>
+                          </button>
+                      )}
+                  </div>
+              </div>
+  
+              {filteredList.length === 0 ? (
+                  <div className="glass-panel rounded-[32px] p-12 flex flex-col items-center justify-center text-center animate-scale-spring relative overflow-hidden border border-white/20 dark:border-white/5">
+                      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent dark:from-white/5 opacity-50 pointer-events-none"></div>
+                      <div className="relative">
+                          <div className="w-24 h-24 bg-gradient-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-full flex items-center justify-center shadow-lg border border-white/40 dark:border-white/10 relative z-10 backdrop-blur-md">
+                              <i className="fa-solid fa-receipt text-4xl text-emerald-500/80 dark:text-emerald-400/80"></i>
+                          </div>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-emerald-500/40 dark:bg-emerald-500/20 rounded-full blur-2xl animate-breathing"></div>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-emerald-400/40 dark:bg-emerald-400/20 rounded-full blur-md animate-breathing" style={{ animationDelay: '1s' }}></div>
+                      </div>
+                      {isFiltered && (
+                          <div className="mt-6 animate-enter-smooth">
+                              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">没有找到符合条件的记录</p>
+                          </div>
+                      )}
+                  </div>
+              ) : (
+                  <div className="space-y-3 pb-24">
+                      {filteredList.map((t, index) => (
+                          <div 
+                              key={t.id} 
+                              className={index < 10 ? "animate-enter-smooth" : ""} 
+                              style={index < 10 ? { animationDelay: `${index * 30}ms`, animationFillMode: 'both' } : {}}
+                          >
+                              <TransactionItem 
+                                  transaction={t} 
+                                  onLongPress={openContextMenu}
+                              />
+                          </div>
+                      ))}
+                  </div>
+              )}
+            </div>
+        </div>
+      )}
+      
       {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} isFullscreen={isFullscreen} />}
       {view === 'STATS' && <StatsView transactions={transactions} income={income} expense={expense} isFullscreen={isFullscreen} />}
 
