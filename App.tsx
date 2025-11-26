@@ -47,7 +47,7 @@ const NavBar = ({ current, onChange }: { current: ViewState, onChange: (v: ViewS
   </div>
 );
 
-const KeypadButton = ({ val, onClick, className = '' }: { val: string | React.ReactNode, onClick: () => void, className?: string }) => (
+const KeypadButton: React.FC<{ val: string | React.ReactNode, onClick: () => void, className?: string }> = ({ val, onClick, className = '' }) => (
     <button 
         onClick={onClick} 
         className={`h-16 rounded-[20px] text-2xl font-bold backdrop-blur-md active:scale-95 transition-all duration-150 flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-white/10 dark:border-white/5 ${className}`}
@@ -350,8 +350,27 @@ export default function App() {
       setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    // Auto Fullscreen Trigger on First Interaction
+    const tryAutoFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {
+                // Ignore failure (e.g., if triggered programmatically without enough user gesture on some browsers)
+            });
+        }
+        // Remove listener after first attempt to avoid annoyance
+        document.removeEventListener('click', tryAutoFullscreen, true);
+        document.removeEventListener('touchend', tryAutoFullscreen, true);
+    };
+    
+    // Use capture phase to catch the very first interaction
+    document.addEventListener('click', tryAutoFullscreen, true);
+    document.addEventListener('touchend', tryAutoFullscreen, true);
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('click', tryAutoFullscreen, true);
+      document.removeEventListener('touchend', tryAutoFullscreen, true);
     };
   }, []);
 
