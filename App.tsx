@@ -8,13 +8,12 @@ import AnalysisChart from './components/AnalysisChart';
 
 const AmbientBackground = () => (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Performance Optimization: Add will-change-transform */}
         {/* Top Right Blob - Vibrant Purple */}
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-400/30 dark:bg-purple-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[60px] opacity-70 dark:opacity-40 animate-blob will-change-transform"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-400/30 dark:bg-purple-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 dark:opacity-40 animate-blob"></div>
         {/* Bottom Left Blob - Vibrant Emerald */}
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-400/30 dark:bg-emerald-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[60px] opacity-70 dark:opacity-40 animate-blob animation-delay-2000 will-change-transform"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-400/30 dark:bg-emerald-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 dark:opacity-40 animate-blob animation-delay-2000"></div>
         {/* Center/Moving Blob - Vibrant Blue */}
-        <div className="absolute top-[30%] left-[20%] w-[400px] h-[400px] bg-blue-400/30 dark:bg-blue-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[60px] opacity-70 dark:opacity-40 animate-blob animation-delay-4000 will-change-transform"></div>
+        <div className="absolute top-[30%] left-[20%] w-[400px] h-[400px] bg-blue-400/30 dark:bg-blue-600/30 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 dark:opacity-40 animate-blob animation-delay-4000"></div>
     </div>
 );
 
@@ -152,7 +151,6 @@ const AddTransactionView = ({ onSave, onClose, isFullscreen }: { onSave: (t: Tra
                     <div
                         key={cat}
                         className="aspect-square"
-                        // Optimized: Reduce delay for smoother feel
                         style={{ 
                             animation: `scaleSpring 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) ${Math.min(idx * 20, 300)}ms forwards`, 
                             opacity: 0, 
@@ -357,24 +355,8 @@ export default function App() {
       setIsFullscreen(!!document.fullscreenElement);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-    // Auto fullscreen on first interaction
-    const tryAutoFullscreen = () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-      document.removeEventListener('click', tryAutoFullscreen, true);
-      document.removeEventListener('touchend', tryAutoFullscreen, true);
-    };
-
-    // Add capture phase listeners to catch the earliest possible interaction
-    document.addEventListener('click', tryAutoFullscreen, true);
-    document.addEventListener('touchend', tryAutoFullscreen, true);
-
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('click', tryAutoFullscreen, true);
-      document.removeEventListener('touchend', tryAutoFullscreen, true);
     };
   }, []);
 

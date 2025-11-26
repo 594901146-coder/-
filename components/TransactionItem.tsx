@@ -81,10 +81,7 @@ const TransactionItem: React.FC<Props> = ({ transaction, onClick, onLongPress })
       onTouchEnd={handleEnd}
       onTouchMove={handleCancel}
       onContextMenu={(e) => e.preventDefault()} // Prevent default browser menu
-      // PERFORMANCE FIX: Removed backdrop-blur-md from here. 
-      // Scrolling lists with backdrop-filter is the #1 cause of mobile lag.
-      // Increased background opacity to compensate.
-      className={`flex items-center justify-between p-4 bg-white/70 dark:bg-slate-900/60 mb-3 transition-transform duration-200 rounded-[24px] shadow-sm border border-white/50 dark:border-white/5 hover:bg-white/90 dark:hover:bg-slate-800/80 select-none ${isPressing ? 'scale-[0.96] opacity-90' : 'active:scale-[0.98]'}`}
+      className={`flex items-center justify-between p-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md mb-3 transition-transform duration-200 rounded-[24px] shadow-sm border border-white/40 dark:border-white/5 hover:bg-white/60 dark:hover:bg-slate-800/60 select-none ${isPressing ? 'scale-[0.96] opacity-90' : 'active:scale-[0.98]'}`}
       style={{ WebkitUserSelect: 'none' }}
     >
       <div className="flex items-center gap-4 pointer-events-none">
