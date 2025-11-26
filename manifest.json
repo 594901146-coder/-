@@ -2,7 +2,7 @@
   "name": "极简记账",
   "short_name": "极简记账",
   "start_url": ".",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#020617",
   "theme_color": "#020617",
   "orientation": "portrait",
