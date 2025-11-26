@@ -653,7 +653,7 @@ export default function App() {
 
       {/* Filter Modal Portal */}
       {createPortal(
-        <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
+        <div className={`fixed inset-0 z-[999] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
             <div 
             className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[4px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
             onClick={() => setShowFilter(false)}
@@ -705,7 +705,7 @@ export default function App() {
 
       {/* Context Menu Modal Portal */}
       {createPortal(
-        <div className={`fixed inset-0 z-[70] flex items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
+        <div className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
             <div 
                 className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
                 onClick={() => setContextMenuTarget(null)}
@@ -765,7 +765,7 @@ export default function App() {
 
       {/* Delete Confirmation Modal Portal */}
       {createPortal(
-        <div className={`fixed inset-0 z-[90] flex items-center justify-center pointer-events-none transition-all duration-300 ${showDeleteConfirm ? 'visible' : 'invisible'}`}>
+        <div className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-all duration-300 ${showDeleteConfirm ? 'visible' : 'invisible'}`}>
             <div 
                 className={`absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300 pointer-events-auto ${showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
                 onClick={() => setShowDeleteConfirm(false)}
@@ -801,7 +801,7 @@ export default function App() {
 
       {/* Edit Note Modal Portal */}
       {createPortal(
-        <div className={`fixed inset-0 z-[80] flex items-center justify-center pointer-events-none transition-all duration-300 ${isEditingNote ? 'visible' : 'invisible'}`}>
+        <div className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-all duration-300 ${isEditingNote ? 'visible' : 'invisible'}`}>
             <div 
                 className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
                 onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
