@@ -313,6 +313,8 @@ export default function App() {
   const [contextMenuTarget, setContextMenuTarget] = useState<Transaction | null>(null);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [editNoteText, setEditNoteText] = useState('');
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
+  const [editAmountVal, setEditAmountVal] = useState('');
 
   // Delete Confirm State
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -462,6 +464,15 @@ export default function App() {
     }
   };
 
+  const handleUpdateAmount = () => {
+    const val = parseFloat(editAmountVal);
+    if (contextMenuTarget && !isNaN(val) && val > 0) {
+        setTransactions(prev => prev.map(t => t.id === contextMenuTarget.id ? { ...t, amount: val } : t));
+        setIsEditingAmount(false);
+        setContextMenuTarget(null);
+    }
+  };
+
   const openContextMenu = (t: Transaction) => setContextMenuTarget(t);
   
   const handleSearchFocus = () => {
@@ -496,7 +507,7 @@ export default function App() {
 
   const filteredList = getFilteredTransactions();
   const isFiltered = filterType !== 'ALL' || filterDate !== 'ALL' || searchQuery.trim() !== '';
-  const isOverlayActive = showFilter || isEditingNote || contextMenuTarget !== null || showDeleteConfirm;
+  const isOverlayActive = showFilter || isEditingNote || isEditingAmount || contextMenuTarget !== null || showDeleteConfirm;
 
   return (
     <div className="h-full w-full relative bg-[#f2f4f6] dark:bg-[#020617] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500 overflow-hidden h-[100dvh]">
@@ -715,12 +726,12 @@ export default function App() {
 
       {/* Context Menu Modal Portal */}
       {createPortal(
-        <div className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
+        <div className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !isEditingAmount && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
             <div 
-                className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
+                className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !isEditingAmount && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
                 onClick={() => setContextMenuTarget(null)}
             ></div>
-            <div className={`w-[85%] sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[32px] p-6 shadow-2xl border border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-8'}`}>
+            <div className={`w-[85%] sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[32px] p-6 shadow-2xl border border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !isEditingAmount && !showDeleteConfirm ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-8'}`}>
                 
                 {/* Transaction Info Header */}
                 <div className="flex flex-col items-center justify-center mb-6">
@@ -745,20 +756,27 @@ export default function App() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
+                    <button 
+                        onClick={() => { setEditAmountVal(contextMenuTarget?.amount.toString() || ''); setIsEditingAmount(true); }}
+                        className="py-4 rounded-[24px] bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition-all active:scale-95 flex flex-col items-center gap-2 group border border-transparent dark:border-emerald-500/10"
+                    >
+                        <i className="fa-solid fa-money-bill-wave text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span>修改金额</span>
+                    </button>
                     <button 
                         onClick={() => { setEditNoteText(contextMenuTarget?.note || ''); setIsEditingNote(true); }}
-                        className="py-4 rounded-[24px] bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-sm transition-all active:scale-95 flex flex-col items-center gap-2 group border border-transparent dark:border-blue-500/10"
+                        className="py-4 rounded-[24px] bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-xs transition-all active:scale-95 flex flex-col items-center gap-2 group border border-transparent dark:border-blue-500/10"
                     >
                         <i className="fa-solid fa-pen-to-square text-xl mb-1 group-hover:scale-110 transition-transform"></i>
                         <span>修改备注</span>
                     </button>
                     <button 
                         onClick={() => promptDeleteTransaction(contextMenuTarget?.id || '')}
-                        className="py-4 rounded-[24px] bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-500 dark:text-red-400 font-bold text-sm transition-all active:scale-95 flex flex-col items-center gap-2 group border border-transparent dark:border-red-500/10"
+                        className="py-4 rounded-[24px] bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-500 dark:text-red-400 font-bold text-xs transition-all active:scale-95 flex flex-col items-center gap-2 group border border-transparent dark:border-red-500/10"
                     >
                         <i className="fa-solid fa-trash-can text-xl mb-1 group-hover:scale-110 transition-transform"></i>
-                        <span>删除账单</span>
+                        <span>删除</span>
                     </button>
                 </div>
                 
@@ -837,6 +855,48 @@ export default function App() {
                     </button>
                     <button 
                         onClick={handleUpdateNote}
+                        className="flex-1 py-3 rounded-[20px] bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                    >
+                        保存
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Edit Amount Modal Portal */}
+      {createPortal(
+        <div className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-all duration-300 ${isEditingAmount ? 'visible' : 'invisible'}`}>
+            <div 
+                className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingAmount ? 'opacity-100' : 'opacity-0'}`} 
+                onClick={() => { setIsEditingAmount(false); setContextMenuTarget(null); }}
+            ></div>
+            <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${isEditingAmount ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">修改金额</h3>
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-[20px] p-2 mb-4">
+                    <div className="flex items-center justify-center">
+                        <span className="text-lg font-bold text-slate-400 mr-1">¥</span>
+                        <input 
+                            type="number" 
+                            value={editAmountVal}
+                            onChange={(e) => setEditAmountVal(e.target.value)}
+                            className="w-full bg-transparent p-2 text-left text-2xl font-bold text-slate-800 dark:text-white outline-none placeholder-slate-400"
+                            placeholder="0.00"
+                            autoFocus
+                            step="0.01"
+                        />
+                    </div>
+                </div>
+                <div className="flex gap-3">
+                    <button 
+                        onClick={() => { setIsEditingAmount(false); setContextMenuTarget(null); }}
+                        className="flex-1 py-3 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
+                    >
+                        取消
+                    </button>
+                    <button 
+                        onClick={handleUpdateAmount}
                         className="flex-1 py-3 rounded-[20px] bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
                     >
                         保存
