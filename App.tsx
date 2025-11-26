@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
+import { flushSync, createPortal } from 'react-dom';
 import { Transaction, TransactionType, ViewState, Category } from './types';
 import TransactionItem from './components/TransactionItem';
 import AnalysisChart from './components/AnalysisChart';
@@ -651,154 +651,166 @@ export default function App() {
       {view === 'ADD' && <AddTransactionView onSave={addTransaction} onClose={() => setView('HOME')} isFullscreen={isFullscreen} />}
       {view === 'STATS' && <StatsView transactions={transactions} income={income} expense={expense} isFullscreen={isFullscreen} />}
 
-      {/* Filter Modal */}
-      <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
-        <div 
-          className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[4px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
-          onClick={() => setShowFilter(false)}
-        ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
-                <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-                    <i className="fa-solid fa-times"></i>
-                </button>
-            </div>
-            <div className="space-y-6">
-                <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">交易类型</label>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
-                        {(['ALL', 'EXPENSE', 'INCOME'] as const).map(t => (
-                            <button
-                                key={t}
-                                onClick={() => setFilterType(t)}
-                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-300 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                            >
-                                {t === 'ALL' ? '全部' : t === 'EXPENSE' ? '支出' : '收入'}
-                            </button>
-                        ))}
-                    </div>
+      {/* Filter Modal Portal */}
+      {createPortal(
+        <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${showFilter ? 'visible' : 'invisible'}`}>
+            <div 
+            className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[4px] transition-opacity duration-300 pointer-events-auto ${showFilter ? 'opacity-100' : 'opacity-0'}`} 
+            onClick={() => setShowFilter(false)}
+            ></div>
+            <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showFilter ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">筛选交易</h3>
+                    <button onClick={() => setShowFilter(false)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                        <i className="fa-solid fa-times"></i>
+                    </button>
                 </div>
-                <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">时间范围</label>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
-                        {(['ALL', 'THIS_MONTH', 'LAST_MONTH'] as const).map(d => (
-                            <button
-                                key={d}
-                                onClick={() => setFilterDate(d)}
-                                className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-300 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                            >
-                                {d === 'ALL' ? '全部' : d === 'THIS_MONTH' ? '本月' : '上月'}
-                            </button>
-                        ))}
+                <div className="space-y-6">
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">交易类型</label>
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
+                            {(['ALL', 'EXPENSE', 'INCOME'] as const).map(t => (
+                                <button
+                                    key={t}
+                                    onClick={() => setFilterType(t)}
+                                    className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-300 ${filterType === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                >
+                                    {t === 'ALL' ? '全部' : t === 'EXPENSE' ? '支出' : '收入'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block pl-1">时间范围</label>
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-[24px]">
+                            {(['ALL', 'THIS_MONTH', 'LAST_MONTH'] as const).map(d => (
+                                <button
+                                    key={d}
+                                    onClick={() => setFilterDate(d)}
+                                    className={`flex-1 py-2.5 rounded-[20px] text-sm font-bold transition-all duration-300 ${filterDate === d ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                >
+                                    {d === 'ALL' ? '全部' : d === 'THIS_MONTH' ? '本月' : '上月'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-[24px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all duration-300">
+                        确认
+                    </button>
                 </div>
-                <button onClick={() => setShowFilter(false)} className="w-full py-3.5 rounded-[24px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-base shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all duration-300">
-                    确认
-                </button>
             </div>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
 
-      {/* Context Menu Modal */}
-      <div className={`fixed inset-0 z-[70] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
-        <div 
-            className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
-            onClick={() => setContextMenuTarget(null)}
-        ></div>
-        <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
-            <div className="flex flex-col gap-2">
-                <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
-                <button 
-                    onClick={() => { setEditNoteText(contextMenuTarget?.note || ''); setIsEditingNote(true); }}
-                    className="w-full py-4 rounded-[24px] bg-slate-100/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                    <i className="fa-regular fa-pen-to-square text-blue-500"></i> 修改备注
-                </button>
-                <button 
-                    onClick={() => promptDeleteTransaction(contextMenuTarget?.id || '')}
-                    className="w-full py-4 rounded-[24px] bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                    <i className="fa-regular fa-trash-can"></i> 删除账单
-                </button>
-                <div className="h-2"></div>
-                <button 
-                    onClick={() => setContextMenuTarget(null)}
-                    className="w-full py-4 rounded-[24px] bg-white dark:bg-slate-800 text-slate-500 font-bold text-base shadow-sm active:scale-[0.98] transition-all"
-                >
-                    取消
-                </button>
+      {/* Context Menu Modal Portal */}
+      {createPortal(
+        <div className={`fixed inset-0 z-[70] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
+            <div 
+                className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
+                onClick={() => setContextMenuTarget(null)}
+            ></div>
+            <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
+                <div className="flex flex-col gap-2">
+                    <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
+                    <button 
+                        onClick={() => { setEditNoteText(contextMenuTarget?.note || ''); setIsEditingNote(true); }}
+                        className="w-full py-4 rounded-[24px] bg-slate-100/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                        <i className="fa-regular fa-pen-to-square text-blue-500"></i> 修改备注
+                    </button>
+                    <button 
+                        onClick={() => promptDeleteTransaction(contextMenuTarget?.id || '')}
+                        className="w-full py-4 rounded-[24px] bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                        <i className="fa-regular fa-trash-can"></i> 删除账单
+                    </button>
+                    <div className="h-2"></div>
+                    <button 
+                        onClick={() => setContextMenuTarget(null)}
+                        className="w-full py-4 rounded-[24px] bg-white dark:bg-slate-800 text-slate-500 font-bold text-base shadow-sm active:scale-[0.98] transition-all"
+                    >
+                        取消
+                    </button>
+                </div>
             </div>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
 
-      {/* Delete Confirmation Modal */}
-      <div className={`fixed inset-0 z-[90] flex items-center justify-center pointer-events-none transition-all duration-300 ${showDeleteConfirm ? 'visible' : 'invisible'}`}>
-        <div 
-            className={`absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300 pointer-events-auto ${showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
-            onClick={() => setShowDeleteConfirm(false)}
-        ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
-            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400 animate-scale-spring">
-                <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
+      {/* Delete Confirmation Modal Portal */}
+      {createPortal(
+        <div className={`fixed inset-0 z-[90] flex items-center justify-center pointer-events-none transition-all duration-300 ${showDeleteConfirm ? 'visible' : 'invisible'}`}>
+            <div 
+                className={`absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300 pointer-events-auto ${showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
+                onClick={() => setShowDeleteConfirm(false)}
+            ></div>
+            <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${showDeleteConfirm ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+                <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400 animate-scale-spring">
+                    <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 text-center">
+                    {deleteMode === 'ALL' ? '清空所有数据?' : '删除这条账单?'}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
+                    {deleteMode === 'ALL' ? '此操作将永久删除所有交易记录，无法撤销。' : '此操作无法撤销，确定要继续吗？'}
+                </p>
+                <div className="flex gap-3">
+                    <button 
+                        onClick={() => setShowDeleteConfirm(false)}
+                        className="flex-1 py-3.5 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
+                    >
+                        取消
+                    </button>
+                    <button 
+                        onClick={confirmDelete}
+                        className="flex-1 py-3.5 rounded-[20px] bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg shadow-red-500/30 transition-all active:scale-95"
+                    >
+                        {deleteMode === 'ALL' ? '全部清空' : '删除'}
+                    </button>
+                </div>
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 text-center">
-                {deleteMode === 'ALL' ? '清空所有数据?' : '删除这条账单?'}
-            </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
-                {deleteMode === 'ALL' ? '此操作将永久删除所有交易记录，无法撤销。' : '此操作无法撤销，确定要继续吗？'}
-            </p>
-            <div className="flex gap-3">
-                <button 
-                    onClick={() => setShowDeleteConfirm(false)}
-                    className="flex-1 py-3.5 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
-                >
-                    取消
-                </button>
-                <button 
-                    onClick={confirmDelete}
-                    className="flex-1 py-3.5 rounded-[20px] bg-red-500 hover:bg-red-600 text-white font-bold shadow-lg shadow-red-500/30 transition-all active:scale-95"
-                >
-                    {deleteMode === 'ALL' ? '全部清空' : '删除'}
-                </button>
-            </div>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
 
-      {/* Edit Note Modal */}
-      <div className={`fixed inset-0 z-[80] flex items-center justify-center pointer-events-none transition-all duration-300 ${isEditingNote ? 'visible' : 'invisible'}`}>
-         <div 
-            className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
-            onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
-        ></div>
-        <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">修改备注</h3>
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-[20px] p-2 mb-4">
-                <input 
-                    type="text" 
-                    value={editNoteText}
-                    onChange={(e) => setEditNoteText(e.target.value)}
-                    className="w-full bg-transparent p-2 text-center text-slate-800 dark:text-white font-medium outline-none placeholder-slate-400"
-                    placeholder="输入新备注..."
-                    autoFocus
-                />
+      {/* Edit Note Modal Portal */}
+      {createPortal(
+        <div className={`fixed inset-0 z-[80] flex items-center justify-center pointer-events-none transition-all duration-300 ${isEditingNote ? 'visible' : 'invisible'}`}>
+            <div 
+                className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${isEditingNote ? 'opacity-100' : 'opacity-0'}`} 
+                onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
+            ></div>
+            <div className={`w-[85%] sm:w-80 bg-white dark:bg-slate-900 rounded-[32px] p-6 shadow-2xl transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${isEditingNote ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 text-center">修改备注</h3>
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-[20px] p-2 mb-4">
+                    <input 
+                        type="text" 
+                        value={editNoteText}
+                        onChange={(e) => setEditNoteText(e.target.value)}
+                        className="w-full bg-transparent p-2 text-center text-slate-800 dark:text-white font-medium outline-none placeholder-slate-400"
+                        placeholder="输入新备注..."
+                        autoFocus
+                    />
+                </div>
+                <div className="flex gap-3">
+                    <button 
+                        onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
+                        className="flex-1 py-3 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
+                    >
+                        取消
+                    </button>
+                    <button 
+                        onClick={handleUpdateNote}
+                        className="flex-1 py-3 rounded-[20px] bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                    >
+                        保存
+                    </button>
+                </div>
             </div>
-            <div className="flex gap-3">
-                <button 
-                    onClick={() => { setIsEditingNote(false); setContextMenuTarget(null); }}
-                    className="flex-1 py-3 rounded-[20px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold transition-colors active:scale-95"
-                >
-                    取消
-                </button>
-                <button 
-                    onClick={handleUpdateNote}
-                    className="flex-1 py-3 rounded-[20px] bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
-                >
-                    保存
-                </button>
-            </div>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
       
       {view !== 'ADD' && !isOverlayActive && <NavBar current={view} onChange={setView} />}
     </div>
