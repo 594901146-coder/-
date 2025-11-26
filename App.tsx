@@ -499,7 +499,7 @@ export default function App() {
              <div className="relative z-10">
                  <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-2 bg-slate-100/30 dark:bg-slate-800/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,111,153,0.8)]"></span>
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-200">极简记账</span>
                     </div>
                     
@@ -705,34 +705,59 @@ export default function App() {
 
       {/* Context Menu Modal Portal */}
       {createPortal(
-        <div className={`fixed inset-0 z-[70] flex items-end sm:items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
+        <div className={`fixed inset-0 z-[70] flex items-center justify-center pointer-events-none transition-all duration-300 ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'visible' : 'invisible'}`}>
             <div 
-                className={`absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
+                className={`absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-auto ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'opacity-100' : 'opacity-0'}`} 
                 onClick={() => setContextMenuTarget(null)}
             ></div>
-            <div className={`w-full sm:w-96 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-t-[32px] sm:rounded-[32px] p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl border-t border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-full sm:translate-y-10 sm:scale-95 opacity-0'}`}>
-                <div className="flex flex-col gap-2">
-                    <h3 className="text-center text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider">选择操作</h3>
+            <div className={`w-[85%] sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[32px] p-6 shadow-2xl border border-white/20 dark:border-white/10 transform transition-all duration-300 pointer-events-auto cubic-bezier(0.2, 0.8, 0.2, 1) ${contextMenuTarget && !isEditingNote && !showDeleteConfirm ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-8'}`}>
+                
+                {/* Transaction Info Header */}
+                <div className="flex flex-col items-center justify-center mb-6">
+                    <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center text-3xl mb-3 shadow-sm ${contextMenuTarget?.type === 'EXPENSE' ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500'}`}>
+                        <i className={`fa-solid ${
+                                contextMenuTarget?.category === '餐饮' ? 'fa-utensils' :
+                                contextMenuTarget?.category === '交通' ? 'fa-car-side' :
+                                contextMenuTarget?.category === '购物' ? 'fa-bag-shopping' :
+                                contextMenuTarget?.category === '居住' ? 'fa-house' :
+                                contextMenuTarget?.category === '娱乐' ? 'fa-gamepad' :
+                                contextMenuTarget?.category === '医疗' ? 'fa-briefcase-medical' :
+                                contextMenuTarget?.category === '薪资' ? 'fa-wallet' : 
+                                'fa-circle-question'
+                            }`}></i>
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{contextMenuTarget?.note}</h3>
+                        <p className={`text-2xl font-bold tracking-tight mt-1 ${contextMenuTarget?.type === 'EXPENSE' ? 'text-slate-900 dark:text-white' : 'text-emerald-500'}`}>
+                            {contextMenuTarget?.type === 'EXPENSE' ? '-' : '+'} <span className="text-lg">¥</span>{contextMenuTarget?.amount.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">{contextMenuTarget?.date} · {contextMenuTarget?.category}</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                     <button 
                         onClick={() => { setEditNoteText(contextMenuTarget?.note || ''); setIsEditingNote(true); }}
-                        className="w-full py-4 rounded-[24px] bg-slate-100/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                        className="py-4 rounded-[24px] bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-sm transition-all active:scale-95 flex flex-col items-center gap-2 group border border-transparent dark:border-blue-500/10"
                     >
-                        <i className="fa-regular fa-pen-to-square text-blue-500"></i> 修改备注
+                        <i className="fa-solid fa-pen-to-square text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span>修改备注</span>
                     </button>
                     <button 
                         onClick={() => promptDeleteTransaction(contextMenuTarget?.id || '')}
-                        className="w-full py-4 rounded-[24px] bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                        className="py-4 rounded-[24px] bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-500 dark:text-red-400 font-bold text-sm transition-all active:scale-95 flex flex-col items-center gap-2 group border border-transparent dark:border-red-500/10"
                     >
-                        <i className="fa-regular fa-trash-can"></i> 删除账单
-                    </button>
-                    <div className="h-2"></div>
-                    <button 
-                        onClick={() => setContextMenuTarget(null)}
-                        className="w-full py-4 rounded-[24px] bg-white dark:bg-slate-800 text-slate-500 font-bold text-base shadow-sm active:scale-[0.98] transition-all"
-                    >
-                        取消
+                        <i className="fa-solid fa-trash-can text-xl mb-1 group-hover:scale-110 transition-transform"></i>
+                        <span>删除账单</span>
                     </button>
                 </div>
+                
+                <button 
+                    onClick={() => setContextMenuTarget(null)}
+                    className="w-full mt-3 py-3.5 rounded-[24px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95"
+                >
+                    取消
+                </button>
             </div>
         </div>,
         document.body
